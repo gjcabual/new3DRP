@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>3D Room Planner - Welcome</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .intro-container {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 500px;
+        backdrop-filter: blur(10px);
+        margin: 20px;
+      }
+
+      .intro-container h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+        font-weight: 300;
+      }
+
+      .intro-container p {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 1.1em;
+      }
+
+      .dimension-inputs {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .input-group label {
+        font-size: 0.9em;
+        color: #888;
+        margin-bottom: 5px;
+        font-weight: 500;
+      }
+
+      .dimension-inputs input {
+        width: 120px;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1.2em;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: white;
+      }
+
+      .dimension-inputs input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .dimension-separator {
+        font-size: 2em;
+        color: #666;
+        font-weight: bold;
+      }
+
+      .start-button {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.2em;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .start-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .start-button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .hint {
+        font-size: 0.9em;
+        color: #999;
+        margin-top: 15px;
+        font-style: italic;
+      }
+
+      /* Responsive design */
+      @media (max-width: 600px) {
+        .intro-container {
+          margin: 20px;
+          padding: 30px 20px;
+        }
+
+        .intro-container h1 {
+          font-size: 2em;
+        }
+
+        .dimension-inputs {
+          flex-direction: column;
+        }
+
+        .dimension-separator {
+          transform: rotate(90deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="intro-container">
+      <h1>🏠 3D Room Planner</h1>
+      <p>Enter your room dimensions to get started</p>
+
+      <div class="dimension-inputs">
+        <div class="input-group">
+          <label>Width</label>
+          <input
+            type="number"
+            id="room-width"
+            placeholder="5"
+            min="1"
+            max="20"
+          />
+          <small style="color: #999; margin-top: 5px">M</small>
+        </div>
+
+        <div class="dimension-separator">×</div>
+
+        <div class="input-group">
+          <label>Length</label>
+          <input
+            type="number"
+            id="room-length"
+            placeholder="6"
+            min="1"
+            max="20"
+          />
+          <small style="color: #999; margin-top: 5px">M</small>
+        </div>
+      </div>
+
+      <button class="start-button" onclick="startPlanner()">
+        Start Planning
+      </button>
+
+      <div class="hint">
+        💡 Example: W=5M × L=6M for a medium bedroom<br />
+        Recommended range: 1-20M per dimension
+      </div>
+    </div>
+
+    <script>
+      function startPlanner() {
+        const widthInput = document.getElementById("room-width");
+        const lengthInput = document.getElementById("room-length");
+
+        const width = parseFloat(widthInput.value);
+        const length = parseFloat(lengthInput.value);
+
+        // Validation
+        if (!width || !length) {
+          alert("Please enter both width and length dimensions");
+          return;
+        }
+
+        if (width < 1 || width > 20 || length < 1 || length > 20) {
+          alert("Please enter dimensions between 1M and 20M");
+          return;
+        }
+
+        // Store dimensions in localStorage for the planner page
+        localStorage.setItem("roomWidth", width);
+        localStorage.setItem("roomLength", length);
+
+        // Redirect to planner page
+        window.location.href = "planner.html";
+      }
+
+      // Allow Enter key to start planner
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          startPlanner();
+        }
+      });
+
+      // Auto-focus first input
+      window.addEventListener("load", function () {
+        document.getElementById("room-width").focus();
+      });
+    </script>
+  </body>
+</html>
