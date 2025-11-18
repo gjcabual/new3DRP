@@ -1,0 +1,132 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro-container {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  backdrop-filter: blur(10px);
+  margin: 20px;
+}
+
+.intro-container h1 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 2.5em;
+  font-weight: 300;
+}
+
+.intro-container p {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 1.1em;
+}
+
+.dimension-inputs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.input-group label {
+  font-size: 0.9em;
+  color: #888;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.dimension-inputs input {
+  width: 120px;
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1.2em;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.dimension-inputs input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.dimension-separator {
+  font-size: 2em;
+  color: #666;
+  font-weight: bold;
+}
+
+.start-button {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  font-size: 1.2em;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.start-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.start-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.hint {
+  font-size: 0.9em;
+  color: #999;
+  margin-top: 15px;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  .intro-container {
+    margin: 20px;
+    padding: 30px 20px;
+  }
+
+  .intro-container h1 {
+    font-size: 2em;
+  }
+
+  .dimension-inputs {
+    flex-direction: column;
+  }
+
+  .dimension-separator {
+    transform: rotate(90deg);
+  }
+}
+
