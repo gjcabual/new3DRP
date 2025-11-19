@@ -1,0 +1,172 @@
+/* Authentication Modal Styles */
+
+#auth-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+}
+
+#auth-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+#auth-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#auth-modal-close:hover {
+  color: #000;
+}
+
+#auth-modal-title {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.auth-form-group {
+  margin-bottom: 20px;
+}
+
+.auth-form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+  font-weight: 500;
+}
+
+.auth-form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.auth-form-group input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+#auth-submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+#auth-submit-btn:hover:not(:disabled) {
+  background: #45a049;
+}
+
+#auth-submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+#auth-switch {
+  text-align: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+#auth-switch-text {
+  color: #666;
+  margin-right: 5px;
+}
+
+#auth-switch-btn {
+  background: none;
+  border: none;
+  color: #4CAF50;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+#auth-switch-btn:hover {
+  color: #45a049;
+}
+
+#auth-error {
+  color: #d32f2f;
+  margin-top: 10px;
+  font-size: 14px;
+  min-height: 20px;
+}
+
+#auth-success {
+  color: #388e3c;
+  margin-top: 10px;
+  font-size: 14px;
+  min-height: 20px;
+}
+
+/* Snapshot Button */
+#user-info {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  padding: 8px 15px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 5px;
+  font-size: 14px;
+  color: #333;
+  z-index: 999;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: none !important;
+}
+
+/* Admin Link */
+#admin-link {
+  position: fixed;
+  top: 110px;
+  right: 20px;
+  padding: 8px 15px;
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+  border-radius: 5px;
+  font-size: 14px;
+  text-decoration: none;
+  z-index: 998;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: none;
+}
+
+#admin-link:hover {
+  background: rgba(69, 160, 73, 0.9);
+}
+

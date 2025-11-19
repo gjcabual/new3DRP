@@ -10,7 +10,7 @@ AFRAME.registerComponent('smart-placement', {
   init: function() {
     this.el.addEventListener('model-loaded', this.adjustPosition.bind(this));
     this.originalPosition = null;
-    this.defaultColor = '#8B4513';
+    this.defaultColor = '#FF8C00';
   },
   
   adjustPosition: function() {

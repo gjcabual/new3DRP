@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <title>3D Room Planner</title>
     <link rel="stylesheet" href="css/planner.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/profile.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <!-- A-Frame Components -->
     <script src="js/components/movement.js"></script>
@@ -13,18 +17,140 @@
     <script src="js/components/clickable-furniture.js"></script>
     <script src="js/components/position-debug.js"></script>
     <script src="js/utils/debug.js"></script>
+    <!-- Supabase and Auth -->
+    <script src="js/utils/supabase.js"></script>
+    <script src="js/auth/auth.js"></script>
+    <script src="js/auth/auth-ui.js"></script>
+    <script src="js/utils/snapshot.js"></script>
+    <script src="js/utils/migrate-data.js"></script>
+    <script src="js/components/profile-menu.js"></script>
     <!-- Main Application Script -->
     <script src="js/planner.js"></script>
   </head>
   <body>
+    <!-- Profile Circle -->
+    <div
+      id="profile-circle"
+      style="display: none"
+      onclick="toggleProfileMenu()"
+    >
+      <div id="profile-initials">U</div>
+      <div id="profile-dropdown" class="profile-dropdown">
+        <div class="profile-dropdown-info">
+          <div class="profile-dropdown-label">Signed in as</div>
+          <div id="profile-user-email" class="profile-dropdown-email">
+            user@example.com
+          </div>
+        </div>
+        <button
+          type="button"
+          class="profile-dropdown-item"
+          onclick="handleSnapshotClick()"
+        >
+          🖼️ Save Snapshot
+        </button>
+        <button
+          type="button"
+          class="profile-dropdown-item"
+          onclick="toggleInstructions()"
+        >
+          ❔ Toggle Instructions
+        </button>
+        <div class="profile-dropdown-divider"></div>
+        <button
+          type="button"
+          class="profile-dropdown-item"
+          onclick="window.location.href='profile.html'"
+        >
+          Profile
+        </button>
+        <button
+          type="button"
+          id="profile-admin-link"
+          class="profile-dropdown-item"
+          style="display: none"
+          onclick="window.location.href='admin.html'"
+        >
+          Admin Dashboard
+        </button>
+        <button
+          type="button"
+          class="profile-dropdown-item"
+          onclick="handleProfileLogout()"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Snapshot Action Button -->
+    <button
+      id="snapshot-btn"
+      aria-label="Save Snapshot"
+      title="Save Snapshot"
+      onclick="handleSnapshotClick()"
+    >
+      🖼️
+    </button>
+
+    <div id="hud-stack">
+      <!-- Cost Estimator Panel -->
+      <div id="cost-panel" class="hidden">
+        <div class="cost-header" onclick="toggleCostPanel()">
+          <h3>💰 Project Cost</h3>
+          <button class="cost-toggle-btn" aria-label="Toggle Cost Panel">
+            ▼
+          </button>
+        </div>
+        <div class="cost-body" id="cost-items"></div>
+        <div class="cost-footer">
+          <div class="cost-total-row">
+            <span>Total:</span>
+            <span id="cost-total-display">₱0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div id="instructions" class="hidden">
+        <div class="instructions-content">
+          <p><strong>🎮 Controls:</strong></p>
+          <p>W/A/S/D → Move around</p>
+          <p>Q → Move Up | E → Move Down</p>
+          <p>Mouse → Look around</p>
+          <hr style="margin: 10px 0; border-color: #666" />
+          <p><strong>🍽️ Furniture:</strong></p>
+          <p>📦 Click panel button to open library</p>
+          <p>🖱️ Drag the center table into your room</p>
+          <p>🖱️ Click an item to show more options</p>
+          <hr style="margin: 10px 0; border-color: #666" />
+          <p><strong>📊 Cost Board:</strong></p>
+          <p>📋 Simple white panel - positioned at right wall</p>
+          <p>💰 Shows costs and total</p>
+          <p>👀 Walk around to view from different angles</p>
+          <p
+            id="room-info"
+            style="
+              margin-top: 10px;
+              padding-top: 10px;
+              border-top: 1px solid #666;
+            "
+          ></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Info (legacy, may remove later) -->
+    <div id="user-info"></div>
+
+    <!-- Admin Link (legacy, replaced by profile menu) -->
+    <a href="admin.html" id="admin-link" style="display: none">Admin Panel</a>
+
     <!-- Back Button -->
     <button id="back-button" onclick="goBack()">← Back to Setup</button>
 
     <!-- Side Panel Toggle Button -->
     <button id="panel-toggle" onclick="togglePanel()">📦</button>
-
-    <!-- Cost Estimator Panel (hidden; replaced by in-scene board) -->
-    <div id="cost-panel" style="display: none"></div>
 
     <!-- Side Panel with 3D Models -->
     <div id="side-panel">
@@ -186,52 +312,8 @@
       </div>
     </div>
 
-    <!-- Instructions -->
-    <div id="instructions">
-      <button id="instructions-toggle" onclick="toggleInstructions()">?</button>
-      <div class="instructions-content">
-        <p><strong>🎮 Controls:</strong></p>
-        <p>W/A/S/D → Move around</p>
-        <p>Q → Move Up | E → Move Down</p>
-        <p>Mouse → Look around</p>
-        <hr style="margin: 10px 0; border-color: #666" />
-        <p><strong>🍽️ Furniture:</strong></p>
-        <p>📦 Click panel button to open library</p>
-        <p>🖱️ Drag the center table into your room</p>
-        <p>🖱️ Click an item to show more options</p>
-        <hr style="margin: 10px 0; border-color: #666" />
-        <p><strong>📊 Cost Board:</strong></p>
-        <p>📋 Simple white panel - positioned at right wall</p>
-        <p>💰 Shows costs and total</p>
-        <p>👀 Walk around to view from different angles</p>
-        <p
-          id="room-info"
-          style="
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #666;
-          "
-        ></p>
-      </div>
-    </div>
-
     <!-- Drop Indicator -->
     <div class="drop-indicator" id="drop-indicator">📍 Drop Item Here</div>
-
-    <!-- Cost Estimation Panel (Toggleable) -->
-    <div id="cost-estimation-panel" class="collapsed">
-      <button id="cost-toggle" onclick="toggleCostPanel()">💰</button>
-      <div class="cost-panel-content">
-        <h3>💰 Cost Estimation</h3>
-        <div id="cost-items-list"></div>
-        <div class="cost-total-section">
-          <div class="cost-total-row">
-            <span>Total:</span>
-            <span id="cost-total-display">₱0.00</span>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Furniture Control Panel -->
     <div id="furniture-control-panel">
@@ -295,7 +377,7 @@
         rotation="-90 0 0"
         width="10"
         height="10"
-        color="#7BC8A4"
+        color="#8B4513"
         material="roughness: 1; metalness: 0"
         shadow="receive: true"
         floor-resize
@@ -309,32 +391,44 @@
 
       <!-- Grid helper for better spatial awareness -->
       <a-entity id="grid-helper" visible="false"></a-entity>
-
-      <!-- In-Scene Cost Board -->
-      <a-entity id="cost-board" position="-3 2 -3" rotation="0 45 0">
-        <a-plane
-          width="2.2"
-          height="1.2"
-          color="#ffffff"
-          material="roughness: 1; metalness: 0"
-          opacity="1.0"
-          shadow="receive: true"
-        ></a-plane>
-        <a-text
-          value="Cost Estimator"
-          color="#333"
-          position="-1 0.45 0.01"
-          width="3"
-        ></a-text>
-        <a-entity id="cost-lines" position="-1 0.25 0.01"></a-entity>
-        <a-text
-          id="cost-total-text"
-          value="Total: ₱0.00"
-          color="#333"
-          position="-1 -0.45 0.01"
-          width="3"
-        ></a-text>
-      </a-entity>
     </a-scene>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" data-mode="signin">
+      <div id="auth-modal-content">
+        <button id="auth-modal-close" onclick="hideAuthModal()">×</button>
+        <h2 id="auth-modal-title">Sign In</h2>
+        <div class="auth-form-group">
+          <label for="auth-email">Email</label>
+          <input
+            type="email"
+            id="auth-email"
+            placeholder="your.email@example.com"
+            required
+          />
+        </div>
+        <div class="auth-form-group">
+          <label for="auth-password">Password</label>
+          <input
+            type="password"
+            id="auth-password"
+            placeholder="Enter your password"
+            required
+          />
+        </div>
+
+        <button id="auth-submit-btn" onclick="handleAuthSubmit()">
+          Sign In
+        </button>
+        <div id="auth-error"></div>
+        <div id="auth-success"></div>
+        <div id="auth-switch">
+          <span id="auth-switch-text">Don't have an account?</span>
+          <button id="auth-switch-btn" onclick="switchAuthMode()">
+            Sign Up
+          </button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

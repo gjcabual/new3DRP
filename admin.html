@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Admin Panel - 3D Room Planner</title>
+    <link rel="stylesheet" href="css/admin.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/utils/supabase.js"></script>
+    <script src="js/auth/auth.js"></script>
+    <script src="js/admin.js"></script>
+  </head>
+  <body>
+    <div class="admin-container">
+      <header class="admin-header">
+        <h1>🔧 Admin Panel</h1>
+        <div class="admin-actions">
+          <a href="planner.html" class="btn-secondary">← Back to Planner</a>
+          <button
+            id="sign-out-btn"
+            class="btn-secondary"
+            onclick="handleSignOut()"
+          >
+            Sign Out
+          </button>
+        </div>
+      </header>
+
+      <div id="admin-content">
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+          <p>Loading...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error-message" style="display: none">
+          <p id="error-text"></p>
+        </div>
+
+        <!-- Admin Content -->
+        <div id="admin-panel" style="display: none">
+          <div class="info-box">
+            <p>
+              <strong>Note:</strong> You can manage all furniture items and
+              their prices. Prices from multiple stores are averaged to
+              calculate the estimated price.
+            </p>
+          </div>
+
+          <!-- Add New Item Section -->
+          <div class="admin-section">
+            <h2>➕ Add New Item</h2>
+            <div class="form-card">
+              <div class="form-group">
+                <label for="new-item-model-key">Model Key</label>
+                <input
+                  type="text"
+                  id="new-item-model-key"
+                  placeholder="e.g., table2"
+                />
+              </div>
+              <div class="form-group">
+                <label for="new-item-name">Item Name</label>
+                <input
+                  type="text"
+                  id="new-item-name"
+                  placeholder="e.g., Dining Table"
+                />
+              </div>
+              <div class="form-group">
+                <label for="new-item-category">Category</label>
+                <select id="new-item-category">
+                  <option value="Tables">Tables</option>
+                  <option value="Bedroom">Bedroom</option>
+                  <option value="Seating">Seating</option>
+                  <option value="Storage">Storage</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="new-item-model-path">Model File Path</label>
+                <input
+                  type="text"
+                  id="new-item-model-path"
+                  placeholder="e.g., table2.obj"
+                />
+              </div>
+              <button class="btn-primary" onclick="addNewItem()">
+                Add Item
+              </button>
+              <span id="add-item-status" class="save-status"></span>
+            </div>
+          </div>
+
+          <!-- Add Price Section -->
+          <div class="admin-section">
+            <h2>💰 Add Price to Item</h2>
+            <div class="form-card">
+              <div class="form-group">
+                <label for="price-item-select">Select Item</label>
+                <select id="price-item-select">
+                  <option value="">Select an item...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="price-store-name">Store Name</label>
+                <input
+                  type="text"
+                  id="price-store-name"
+                  placeholder="e.g., All-Home"
+                />
+              </div>
+              <div class="form-group">
+                <label for="price-amount">Price (₱)</label>
+                <input
+                  type="number"
+                  id="price-amount"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+              <button class="btn-primary" onclick="addPriceToItem()">
+                Add Price
+              </button>
+              <span id="add-price-status" class="save-status"></span>
+            </div>
+          </div>
+
+          <!-- Items Management Section -->
+          <div class="admin-section">
+            <h2>📦 Manage Items & Prices</h2>
+            <div id="items-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

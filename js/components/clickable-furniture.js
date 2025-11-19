@@ -27,9 +27,9 @@ AFRAME.registerComponent('clickable-furniture', {
   storeOriginalMaterial: function() {
     const material = this.el.getAttribute('material');
     if (material) {
-      this.originalColor = material.color || '#8B4513'; // Default brown
+      this.originalColor = material.color || '#FF8C00'; // Default orange
     } else {
-      this.originalColor = '#8B4513';
+      this.originalColor = '#FF8C00';
     }
   },
   

@@ -16,7 +16,7 @@ AFRAME.registerComponent('draggable-furniture', {
     this.cameraObj = null;
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
-    this.defaultColor = '#8B4513'; // Default brown color
+    this.defaultColor = '#FF8C00'; // Default orange color
     
     // Actual dimensions from 3D model (will be calculated when model loads)
     this.actualWidth = this.data.objectWidth; // Fallback to schema default

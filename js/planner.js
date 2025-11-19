@@ -3,101 +3,143 @@ let furnitureCounter = 0;
 let panelOpen = false;
 let selectedFurniture = null; // Track currently selected furniture
 
-// Multi-source price data for wardrobes (prices from different stores in Butuan City)
-const WARDROBE_PRICE_SOURCES = {
-  wardrobe1: {
-    name: "Wardrobe 1",
-    stores: {
-      "All-Home": 11500,      // Price from All-Home
-      "Wilcon Depot": 12500,  // Price from Wilcon Depot
-      "Gaisano": 12000,       // Price from Gaisano
-      "Local suppliers": 11800 // Price from Local suppliers
+// Items and prices loaded from Supabase
+let ITEMS_DATA = {}; // model_key -> {id, name, category, model_file_path}
+let PRICE_LIST = {}; // model_key -> estimated_price
+let ITEM_METADATA = {}; // model_key -> {name, model_file_path}
+
+const STORAGE_MODEL_FILES = {
+  table1: 'table1.obj',
+  wardrobe1: 'wardrobe_modern.obj',
+  wardrobe2: 'wardrobe_traditional.obj',
+  wardrobe3: 'wardrobe_openframe.obj'
+};
+
+/**
+ * Calculate estimated price from prices array using arithmetic mean
+ * @param {Array<number>} prices - Array of prices
+ * @returns {number} - Estimated price
+ */
+function calculateEstimatedPrice(prices) {
+  if (!prices || prices.length === 0) return 0;
+  const sum = prices.reduce((acc, price) => acc + price, 0);
+  return Math.round((sum / prices.length) * 100) / 100;
+}
+
+/**
+ * Load items and prices from Supabase
+ */
+async function loadItemsAndPrices() {
+  try {
+    console.log('Loading items and prices from Supabase...');
+    ITEMS_DATA = {};
+    PRICE_LIST = {};
+    ITEM_METADATA = {};
+
+    // Fetch all items
+    const { data: items, error: itemsError } = await supabase
+      .from('items')
+      .select('*');
+
+    if (itemsError) {
+      console.error('Error fetching items:', itemsError);
+      return;
     }
-  },
-  wardrobe2: {
-    name: "Wardrobe 2",
-    stores: {
-      "All-Home": 14500,      // Price from All-Home
-      "Wilcon Depot": 15500,  // Price from Wilcon Depot
-      "Gaisano": 15000,       // Price from Gaisano
-      "Local suppliers": 14800 // Price from Local suppliers
+
+    // Store items by model_key
+    items.forEach(item => {
+      ITEMS_DATA[item.model_key] = item;
+      ITEM_METADATA[item.model_key] = {
+        name: item.name,
+        model_file_path: item.model_file_path || STORAGE_MODEL_FILES[item.model_key] || null
+      };
+    });
+
+    // Ensure we have metadata entries for any known models even if not returned
+    Object.keys(STORAGE_MODEL_FILES).forEach(key => {
+      if (!ITEM_METADATA[key]) {
+        ITEM_METADATA[key] = {
+          name: key,
+          model_file_path: STORAGE_MODEL_FILES[key]
+        };
+      }
+    });
+
+    // Fetch all prices
+    const { data: prices, error: pricesError } = await supabase
+      .from('item_prices')
+      .select('*, items(model_key)');
+
+    if (pricesError) {
+      console.error('Error fetching prices:', pricesError);
+      return;
     }
-  },
-  wardrobe3: {
-    name: "Wardrobe 3",
-    stores: {
-      "All-Home": 17500,      // Price from All-Home
-      "Wilcon Depot": 18500,  // Price from Wilcon Depot
-      "Gaisano": 18000,       // Price from Gaisano
-      "Local suppliers": 17800 // Price from Local suppliers
+
+    // Organize prices by model_key and calculate estimated prices
+    const pricesByModel = {};
+    prices.forEach(price => {
+      const modelKey = price.items?.model_key;
+      if (!modelKey) return;
+
+      if (!pricesByModel[modelKey]) {
+        pricesByModel[modelKey] = [];
+      }
+      pricesByModel[modelKey].push(price.price);
+    });
+
+    // Calculate estimated prices
+    Object.keys(pricesByModel).forEach(modelKey => {
+      PRICE_LIST[modelKey] = calculateEstimatedPrice(pricesByModel[modelKey]);
+    });
+
+    // Ensure every known item has an entry (default to 0)
+    Object.keys(ITEM_METADATA).forEach(key => {
+      if (typeof PRICE_LIST[key] === "undefined") {
+        PRICE_LIST[key] = 0;
+      }
+    });
+
+    console.log('Items and prices loaded:', PRICE_LIST);
+  } catch (error) {
+    console.error('Error loading items and prices:', error);
+  }
+}
+
+/**
+ * Get model file URL from Supabase Storage or local path
+ * @param {string} modelKey - Model key (e.g., 'wardrobe1', 'table1')
+ * @returns {string} - Model file URL
+ */
+function getModelUrl(modelKey) {
+  const metadata = ITEM_METADATA[modelKey];
+  const fallbackFile = STORAGE_MODEL_FILES[modelKey];
+  const filePath = metadata?.model_file_path || fallbackFile;
+  
+  if (!filePath) {
+    return `models/${modelKey}.obj`;
+  }
+
+  // Check if it's a wardrobe file (should be in Supabase Storage)
+  if (filePath.includes('wardrobe')) {
+    // Get public URL from Supabase Storage
+    const { data } = supabase.storage.from('wardrobe-models').getPublicUrl(filePath);
+    if (data?.publicUrl) {
+      return data.publicUrl;
     }
   }
-};
 
-// Function to calculate estimated price using arithmetic mean
-// Formula: Estimated Price = (P1 + P2 + P3 + ...) / n
-// where P1, P2, P3 = prices from each store
-// and n = number of sources
-function calculateEstimatedPrice(wardrobeKey) {
-  const wardrobeData = WARDROBE_PRICE_SOURCES[wardrobeKey];
-  if (!wardrobeData) return 0;
-  
-  const prices = Object.values(wardrobeData.stores);
-  const n = prices.length;
-  
-  if (n === 0) return 0;
-  
-  // Calculate arithmetic mean: Estimated Price = (P1 + P2 + P3 + ...) / n
-  const sum = prices.reduce((acc, price) => acc + price, 0);
-  const estimatedPrice = sum / n;
-  
-  // Round to 2 decimal places for currency
-  return Math.round(estimatedPrice * 100) / 100;
+  // Fallback to local path for table1 or if storage URL fails
+  return `models/${filePath}`;
 }
 
-// Helper function to get price breakdown for a wardrobe (for debugging/display)
-function getPriceBreakdown(wardrobeKey) {
-  const wardrobeData = WARDROBE_PRICE_SOURCES[wardrobeKey];
-  if (!wardrobeData) return null;
-  
-  const prices = Object.entries(wardrobeData.stores);
-  const estimatedPrice = calculateEstimatedPrice(wardrobeKey);
-  
-  return {
-    name: wardrobeData.name,
-    sources: prices.map(([store, price]) => ({ store, price })),
-    estimatedPrice: estimatedPrice,
-    sourceCount: prices.length
-  };
+/**
+ * Get item name from metadata
+ * @param {string} modelKey - Model key
+ * @returns {string} - Item display name
+ */
+function getItemName(modelKey) {
+  return ITEM_METADATA[modelKey]?.name || modelKey;
 }
-
-// Compute estimated prices for all wardrobes
-const COMPUTED_WARDROBE_PRICES = {};
-console.log('=== PRICE CONSOLIDATION SYSTEM ===');
-console.log('Computing estimated prices from multiple sources (Butuan City stores)...\n');
-Object.keys(WARDROBE_PRICE_SOURCES).forEach(key => {
-  const breakdown = getPriceBreakdown(key);
-  COMPUTED_WARDROBE_PRICES[key] = calculateEstimatedPrice(key);
-  
-  console.log(`${breakdown.name}:`);
-  breakdown.sources.forEach(({store, price}) => {
-    console.log(`  - ${store}: ₱${price.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
-  });
-  const sum = breakdown.sources.reduce((acc, {price}) => acc + price, 0);
-  console.log(`  Sum: ₱${sum.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
-  console.log(`  Sources: ${breakdown.sourceCount}`);
-  console.log(`  Estimated Price (Average): ₱${breakdown.estimatedPrice.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
-  console.log(`  Formula: (${breakdown.sources.map(s => s.price).join(' + ')}) / ${breakdown.sourceCount} = ${breakdown.estimatedPrice}\n`);
-});
-console.log('=== PRICE CONSOLIDATION COMPLETE ===\n');
-
-// Final price list with computed estimates
-const PRICE_LIST = {
-  table1: 8500, // ₱8,500 price for center table
-  wardrobe1: COMPUTED_WARDROBE_PRICES.wardrobe1,
-  wardrobe2: COMPUTED_WARDROBE_PRICES.wardrobe2,
-  wardrobe3: COMPUTED_WARDROBE_PRICES.wardrobe3,
-};
 
 const costState = {
   items: {}, // key -> {name, price, qty, unitCost}
@@ -131,15 +173,6 @@ function initializeRoom() {
 
   // Create room walls
   createRoomWalls(aframeWidth, aframeLength);
-
-  // Position in-scene cost board at the right wall
-  const costBoard = document.getElementById("cost-board");
-  if (costBoard) {
-    const boardX = aframeWidth / 2 - 0.1; // position just inside the wall for visibility
-    costBoard.setAttribute("position", `${boardX} 1.5 0`);
-    costBoard.setAttribute("rotation", `0 -90 0`);
-    console.log(`Cost board positioned at: ${boardX} 1.5 0`);
-  }
 
   // Update room info
   document.getElementById(
@@ -286,54 +319,15 @@ function goBack() {
 
 function toggleInstructions() {
   const instructions = document.getElementById("instructions");
-  const toggle = document.getElementById("instructions-toggle");
-
-  instructions.classList.toggle("collapsed");
-
-  if (instructions.classList.contains("collapsed")) {
-    toggle.textContent = "?";
-  } else {
-    toggle.textContent = "−";
-  }
-  
-  // Update cost panel position after instructions panel changes
-  updateCostPanelPosition();
-}
-
-function updateCostPanelPosition() {
-  const instructions = document.getElementById("instructions");
-  const costPanel = document.getElementById("cost-estimation-panel");
-  
-  if (!instructions || !costPanel) return;
-  
-  // Wait for any transitions to complete
-  setTimeout(() => {
-    // Get instructions panel position and dimensions
-    const instructionsRect = instructions.getBoundingClientRect();
-    const gap = 10; // Gap between panels
-    
-    // Calculate top position: instructions bottom + gap
-    const topPosition = instructionsRect.bottom + gap - window.scrollY;
-    
-    // Update cost panel position
-    costPanel.style.top = `${topPosition}px`;
-  }, 50);
+  if (!instructions) return;
+  instructions.classList.toggle("hidden");
 }
 
 function toggleCostPanel() {
-  const costPanel = document.getElementById("cost-estimation-panel");
-  const toggle = document.getElementById("cost-toggle");
-
-  costPanel.classList.toggle("collapsed");
-
-  if (costPanel.classList.contains("collapsed")) {
-    toggle.textContent = "💰";
-  } else {
-    toggle.textContent = "−";
-  }
+  const costPanel = document.getElementById("cost-panel");
+  if (!costPanel) return;
   
-  // Update position after toggling (in case instructions panel changed)
-  updateCostPanelPosition();
+  costPanel.classList.toggle("collapsed");
 }
 
 function initializeDragAndDrop() {
@@ -423,7 +417,7 @@ function handleDrop(e) {
   placeholderEl.setAttribute("width", "1.5");
   placeholderEl.setAttribute("height", "0.8");
   placeholderEl.setAttribute("depth", "1.5");
-  placeholderEl.setAttribute("color", "#8B4513");
+  placeholderEl.setAttribute("color", "#FF8C00");
   placeholderEl.setAttribute("opacity", "0.7");
   placeholderEl.id = `${furnitureEl.id}-placeholder`;
   furnitureEl.appendChild(placeholderEl);
@@ -438,9 +432,11 @@ function handleDrop(e) {
   }
   
   // Now set remaining attributes after entity is in the scene
+  // Get model URL from Supabase Storage or local path
+  const modelUrl = getModelUrl(draggedItem.model);
   furnitureEl.setAttribute(
     "obj-model",
-    `obj: url(models/${draggedItem.model}.obj)`
+    `obj: url(${modelUrl})`
   );
   furnitureEl.setAttribute("scale", draggedItem.scale);
   furnitureEl.setAttribute(
@@ -448,7 +444,7 @@ function handleDrop(e) {
     `roomWidth: ${roomWidth}; roomLength: ${roomLength}; objectWidth: 1.5; objectLength: 1.5; wallThickness: 0.1`
   );
   furnitureEl.setAttribute("clickable-furniture", "");
-  furnitureEl.setAttribute("material", "color: #8B4513"); // Brown color for table
+  furnitureEl.setAttribute("material", "color: #FF8C00"); // Orange color for table
   // Store model key as data attribute for easy retrieval during deletion
   furnitureEl.setAttribute("data-model-key", draggedItem.model);
   
@@ -462,7 +458,8 @@ function handleDrop(e) {
   });
 
   // Update cost estimator
-  addItemToCost(draggedItem.model, draggedItem.name);
+  const itemName = getItemName(draggedItem.model);
+  addItemToCost(draggedItem.model, itemName);
 
   // Clean up
   document.querySelectorAll(".model-item.dragging").forEach((item) => {
@@ -525,13 +522,6 @@ function renderCost() {
   }
   
   let total = 0;
-  // Update 3D board lines
-  const linesRoot = document.getElementById("cost-lines");
-  if (linesRoot) {
-    while (linesRoot.firstChild)
-      linesRoot.removeChild(linesRoot.firstChild);
-  }
-  let y = 0; // start at 0, step down per line
   Object.keys(costState.items).forEach((key) => {
     const item = costState.items[key];
     const unitCost = item.unitCost || item.price; // Unit cost (estimated price per unit)
@@ -564,27 +554,12 @@ function renderCost() {
       `;
       costItemsList.appendChild(row);
     }
-    // 3D board line
-    if (linesRoot) {
-      const line = document.createElement("a-text");
-      line.setAttribute(
-        "value",
-        `${item.name} x ${item.qty} = ${peso3D(lineTotal)}`
-      );
-      line.setAttribute("color", "#333");
-      line.setAttribute("position", `0 ${y.toFixed(2)} 0`);
-      line.setAttribute("width", "2.6");
-      linesRoot.appendChild(line);
-      y -= 0.18; // line spacing
-    }
   });
   costState.total = total; // Total project cost (sum of all line totals)
   const totalEl = document.getElementById("cost-total");
   if (totalEl) totalEl.textContent = peso(total);
   const totalDisplay = document.getElementById("cost-total-display");
   if (totalDisplay) totalDisplay.textContent = peso(total);
-  const total3D = document.getElementById("cost-total-text");
-  if (total3D) total3D.setAttribute("value", `Total Project Cost: ${peso3D(total)}`);
   
   console.log(`Total Project Cost: ${peso(total)}`);
 }
@@ -656,6 +631,11 @@ function showWardrobeSubcategory() {
     sidePanel.dataset.originalContent = sidePanel.innerHTML;
   }
   
+  // Get wardrobe names from metadata
+  const wardrobe1Name = getItemName('wardrobe1');
+  const wardrobe2Name = getItemName('wardrobe2');
+  const wardrobe3Name = getItemName('wardrobe3');
+  
   // Create wardrobe panel content
   const wardrobeContent = `
     <div class="panel-header">
@@ -672,7 +652,7 @@ function showWardrobeSubcategory() {
           data-scale="1 1 1"
         >
           <span class="model-icon">👔</span>
-          <div class="model-name">Wardrobe 1</div>
+          <div class="model-name">${wardrobe1Name}</div>
         </div>
         <div
           class="model-item enabled"
@@ -681,7 +661,7 @@ function showWardrobeSubcategory() {
           data-scale="1 1 1"
         >
           <span class="model-icon">👔</span>
-          <div class="model-name">Wardrobe 2</div>
+          <div class="model-name">${wardrobe2Name}</div>
         </div>
         <div
           class="model-item enabled"
@@ -690,7 +670,7 @@ function showWardrobeSubcategory() {
           data-scale="1 1 1"
         >
           <span class="model-icon">👔</span>
-          <div class="model-name">Wardrobe 3</div>
+          <div class="model-name">${wardrobe3Name}</div>
         </div>
       </div>
     </div>
@@ -849,7 +829,18 @@ function deleteFurniture() {
 }
 
 // Initialize room when page loads
-window.addEventListener("load", function () {
+window.addEventListener("load", async function () {
+  // Load items and prices from Supabase first
+  await loadItemsAndPrices();
+  
+  // Initialize auth UI
+  if (typeof initAuthUI === 'function') {
+    initAuthUI();
+  }
+
+  // Update wardrobe names in UI
+  updateWardrobeUI();
+  
   // Attach click event listener to drop indicator (attach once on load)
   const dropIndicator = document.getElementById("drop-indicator");
   if (dropIndicator) {
@@ -863,20 +854,6 @@ window.addEventListener("load", function () {
     sidePanel.dataset.originalContent = sidePanel.innerHTML;
   }
 
-  // Initialize cost panel position
-  setTimeout(() => {
-    updateCostPanelPosition();
-  }, 100);
-  
-  // Update cost panel position when window resizes
-  window.addEventListener("resize", updateCostPanelPosition);
-  
-  // Update cost panel position after instructions panel transitions
-  const instructions = document.getElementById("instructions");
-  if (instructions) {
-    instructions.addEventListener("transitionend", updateCostPanelPosition);
-  }
-
   // Make sure A-Frame scene is ready
   const scene = document.querySelector("a-scene");
   if (scene.hasLoaded) {
@@ -887,5 +864,25 @@ window.addEventListener("load", function () {
       initializeRoom();
     });
   }
+
+  // Ensure cost panel renders at least once on load
+  renderCost();
 });
+
+/**
+ * Update wardrobe UI with names from metadata
+ */
+function updateWardrobeUI() {
+  // Update wardrobe subcategory names
+  const wardrobeItems = document.querySelectorAll('[data-model^="wardrobe"]');
+  wardrobeItems.forEach(item => {
+    const modelKey = item.getAttribute('data-model');
+    const nameEl = item.querySelector('.model-name');
+    if (nameEl && modelKey) {
+      const name = getItemName(modelKey);
+      nameEl.textContent = name;
+    }
+  });
+}
+
 

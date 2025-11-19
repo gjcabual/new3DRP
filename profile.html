@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Profile - 3D Room Planner</title>
+    <link rel="stylesheet" href="css/profile.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/utils/supabase.js"></script>
+    <script src="js/auth/auth.js"></script>
+    <script src="js/utils/snapshot.js"></script>
+    <script src="js/profile.js"></script>
+  </head>
+  <body>
+    <div class="profile-container">
+      <header class="profile-header">
+        <h1>👤 My Profile</h1>
+        <div style="display: flex; gap: 10px; margin-top: 20px">
+          <a href="planner.html" class="btn-secondary">← Back to Planner</a>
+          <button class="btn-secondary" onclick="handleLogout()">Logout</button>
+        </div>
+      </header>
+
+      <div id="profile-content">
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+          <p>Loading...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error-message" style="display: none">
+          <p id="error-text"></p>
+        </div>
+
+        <!-- Profile Info -->
+        <div id="profile-info" style="display: none">
+          <div class="profile-info">
+            <div class="info-item">
+              <label>Email</label>
+              <div class="value" id="profile-email">-</div>
+            </div>
+            <div class="info-item">
+              <label>Role</label>
+              <div class="value" id="profile-role">-</div>
+            </div>
+            <div class="info-item">
+              <label>Account Created</label>
+              <div class="value" id="profile-created">-</div>
+            </div>
+            <div class="info-item">
+              <label>Total Saved Plans</label>
+              <div class="value" id="profile-plans-count">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Saved Plans Section -->
+        <div
+          id="plans-section"
+          class="plans-section"
+          style="display: none; margin-top: 20px"
+        >
+          <h2>My Saved Room Plans</h2>
+          <div id="plans-list" class="plans-list"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -23,12 +23,40 @@ AFRAME.registerComponent('custom-movement', {
     
     // Movement state
     this.isMoving = false;
+    this.enabled = true; // Allow disabling movement
     
     // Get camera reference
     this.camera = this.el.querySelector('a-camera');
   },
   
+  /**
+   * Check if movement should be disabled (e.g., when modal is open)
+   */
+  isMovementDisabled: function() {
+    const authModal = document.getElementById('auth-modal');
+    const furnitureControlPanel = document.getElementById('furniture-control-panel');
+    
+    // Disable if auth modal is open or control panel is visible
+    const modalOpen = authModal && authModal.style.display === 'flex';
+    const panelOpen = furnitureControlPanel && furnitureControlPanel.style.display === 'block';
+    
+    // Also check if any input/textarea is focused
+    const activeElement = document.activeElement;
+    const isInputFocused = activeElement && (
+      activeElement.tagName === 'INPUT' ||
+      activeElement.tagName === 'TEXTAREA' ||
+      activeElement.isContentEditable
+    );
+    
+    return !this.enabled || modalOpen || panelOpen || isInputFocused;
+  },
+  
   onKeyDown: function(e) {
+    // Don't process movement keys if movement is disabled
+    if (this.isMovementDisabled()) {
+      return;
+    }
+    
     const keyPressed = e.key.toLowerCase();
     
     // Debug: Log key presses
@@ -54,6 +82,17 @@ AFRAME.registerComponent('custom-movement', {
   },
   
   onKeyUp: function(e) {
+    // Don't process movement keys if movement is disabled
+    if (this.isMovementDisabled()) {
+      // Still clear key state to prevent stuck keys
+      const keyPressed = e.key.toLowerCase();
+      this.keys[keyPressed] = false;
+      this.keys[e.keyCode] = false;
+      if (e.key === ' ') this.keys['space'] = false;
+      if (e.key === 'Shift') this.keys['shift'] = false;
+      return;
+    }
+    
     const keyPressed = e.key.toLowerCase();
     
     // Prevent default behavior for movement keys
@@ -75,6 +114,11 @@ AFRAME.registerComponent('custom-movement', {
   tick: function () {
     // Make sure we have a valid element and keys object
     if (!this.el || !this.el.object3D || !this.keys) {
+      return;
+    }
+    
+    // Don't process movement if disabled
+    if (this.isMovementDisabled()) {
       return;
     }
     

@@ -147,215 +147,153 @@ body {
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
 }
 
-/* Instructions - Better positioned for centered workspace */
-#instructions {
+.hidden {
+  display: none !important;
+}
+
+#hud-stack {
   position: fixed;
-  top: 20px;
+  top: 90px;
   right: 20px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1200;
+}
+
+/* Instructions & Cost Panel HUD */
+#instructions {
+  width: 100%;
   background: rgba(0, 0, 0, 0.85);
   color: white;
   padding: 20px;
   font-family: Arial, sans-serif;
   border-radius: 12px;
-  z-index: 1000;
-  width: 320px;
-  min-width: 320px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-  transform: translateX(0);
   box-sizing: border-box;
-}
-
-#instructions.collapsed {
-  transform: translateX(calc(100% - 50px));
-  width: 50px;
-  min-width: 50px;
-  padding: 15px 10px;
-}
-
-#instructions.collapsed .instructions-content {
-  display: none;
-}
-
-#instructions-toggle {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: all 0.3s ease;
-  z-index: 10;
-}
-
-#instructions-toggle:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-#instructions.collapsed #instructions-toggle {
-  position: static;
-  width: 100%;
-  margin: 0;
-  padding: 10px;
-  font-size: 1.2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
 
 .instructions-content {
-  padding-right: 50px; /* Make room for toggle button */
+  padding-right: 0;
 }
 
-/* Cost Estimation Panel - Similar to instructions */
-#cost-estimation-panel {
+#snapshot-btn {
   position: fixed;
-  /* top position will be set dynamically by JavaScript */
-  right: 20px; /* Same right position as instructions */
-  background: rgba(0, 0, 0, 0.85);
-  color: white;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  border-radius: 12px;
-  z-index: 1000;
-  width: 320px;
-  min-width: 320px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-  transform: translateX(0);
-  box-sizing: border-box;
-}
-
-#cost-estimation-panel.collapsed {
-  transform: translateX(calc(100% - 50px));
-  width: 50px;
-  min-width: 50px;
-  padding: 15px 10px;
-}
-
-#cost-estimation-panel.collapsed .cost-panel-content {
-  display: none;
-}
-
-#cost-toggle {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.2);
+  top: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
   border: none;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #343434 0%, #181818 100%);
+  color: #f5f5f5;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 22px;
   cursor: pointer;
-  font-size: 0.9em;
-  transition: all 0.3s ease;
-  z-index: 10;
-}
-
-#cost-toggle:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-#cost-estimation-panel.collapsed #cost-toggle {
-  position: static;
-  width: 100%;
-  margin: 0;
-  padding: 10px;
-  font-size: 1.2em;
+  z-index: 1500;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
-.cost-panel-content {
-  padding-right: 50px; /* Make room for toggle button */
+#snapshot-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.45);
 }
 
-.cost-panel-content h3 {
-  margin: 0 0 15px 0;
-  font-size: 1.1em;
-  font-weight: 500;
-  padding-right: 0; /* Ensure no overlap */
-}
-
-#cost-items-list {
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 15px;
-}
-
-.cost-total-section {
-  padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  margin-top: 10px;
-}
-
-.cost-total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-  font-size: 1.3em;
-  color: white;
-}
-
-.cost-total-row span {
-  color: white;
-}
-
-#cost-items-list .cost-item {
-  color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-#cost-items-list .cost-item-name {
-  color: white;
-}
-
-#cost-items-list .cost-item-meta {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* Cost Estimator Panel (Right side) */
+/* Cost Estimator Panel */
 #cost-panel {
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 280px;
-  height: 100vh;
-  background: rgba(255, 255, 255, 0.95);
+  width: 100%;
+  max-height: 260px;
+  background: rgba(15, 15, 15, 0.96);
   backdrop-filter: blur(10px);
-  box-shadow: -2px 0 20px rgba(0, 0, 0, 0.1);
-  z-index: 1500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+#cost-panel.collapsed {
+  width: 48px;
+  max-height: 48px;
+  align-self: flex-end;
+}
+
+#cost-panel.collapsed .cost-header {
+  padding: 12px;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+#cost-panel.collapsed .cost-header h3 {
+  display: block;
+  flex: none;
+  margin: 0;
+  font-size: 0;
+  line-height: 1;
+}
+
+#cost-panel.collapsed .cost-header h3::before {
+  content: "💰";
+  font-size: 24px;
+  display: block;
+}
+
+#cost-panel.collapsed .cost-toggle-btn {
+  display: none;
 }
 
 .cost-header {
-  padding: 20px;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #343434 0%, #181818 100%);
+  color: #f5f5f5;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 12px 12px 0 0;
 }
 
 .cost-header h3 {
   margin: 0;
   font-size: 1.1em;
   font-weight: 500;
+  flex: 1;
+}
+
+.cost-toggle-btn {
+  background: transparent;
+  border: none;
+  color: #f5f5f5;
+  font-size: 0.8em;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: transform 0.2s;
+}
+
+.cost-panel.collapsed .cost-toggle-btn {
+  transform: rotate(-90deg);
+}
+
+.cost-panel.collapsed .cost-body,
+.cost-panel.collapsed .cost-footer {
+  display: none;
 }
 
 .cost-body {
   padding: 15px;
   overflow-y: auto;
   flex: 1;
+  background: rgba(15, 15, 15, 0.96);
 }
 
 .cost-item {
@@ -363,24 +301,30 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 0.95em;
+  color: #f5f5f5;
+}
+
+.cost-item > div:last-child {
+  color: #f5f5f5;
+  font-weight: 600;
 }
 
 .cost-item-name {
-  color: #333;
+  color: #f5f5f5;
   font-weight: 600;
 }
 
 .cost-item-meta {
-  color: #666;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.85em;
 }
 
 .cost-footer {
   padding: 15px 20px;
-  border-top: 1px solid #eaeaea;
-  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 15, 15, 0.96);
 }
 
 .cost-total-row {
@@ -388,13 +332,14 @@ body {
   justify-content: space-between;
   align-items: center;
   font-weight: 700;
-  color: #333;
+  color: #f5f5f5;
   font-size: 1.05em;
 }
 
-@media (max-width: 1024px) {
-  #cost-panel {
-    width: 240px;
+@media (max-width: 768px) {
+  #hud-stack {
+    width: 260px;
+    top: 90px;
   }
 }
 
