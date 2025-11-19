@@ -77,22 +77,42 @@ function deleteLocalRoomPlan(planId) {
 }
 
 async function capturePlannerScreenshot() {
+  const scene = document.querySelector('a-scene');
+  if (!scene) {
+    throw new Error('A-Frame scene not found for screenshot.');
+  }
+
+  const rendererCanvas = scene.renderer?.domElement || document.querySelector('canvas.a-canvas');
+  if (!rendererCanvas) {
+    throw new Error('Unable to locate scene canvas for screenshot.');
+  }
+
+  let uiCanvas = null;
   if (window.html2canvas) {
-    const canvas = await window.html2canvas(document.body, {
-      backgroundColor: '#000000',
+    uiCanvas = await window.html2canvas(document.body, {
+      backgroundColor: null,
       useCORS: true,
       logging: false,
-      scale: 1
+      scale: 1,
+      ignoreElements: element => {
+        if (!element) return false;
+        if (element.tagName === 'A-SCENE') return true;
+        return !!(element.closest && element.closest('a-scene'));
+      }
     });
-    return canvas.toDataURL('image/png');
   }
-  
-  const sceneCanvas = document.querySelector('canvas.a-canvas');
-  if (sceneCanvas) {
-    return sceneCanvas.toDataURL('image/png');
+
+  const mergedCanvas = document.createElement('canvas');
+  mergedCanvas.width = rendererCanvas.width;
+  mergedCanvas.height = rendererCanvas.height;
+  const ctx = mergedCanvas.getContext('2d');
+
+  ctx.drawImage(rendererCanvas, 0, 0, mergedCanvas.width, mergedCanvas.height);
+  if (uiCanvas) {
+    ctx.drawImage(uiCanvas, 0, 0, mergedCanvas.width, mergedCanvas.height);
   }
-  
-  throw new Error('Unable to locate scene canvas for screenshot.');
+
+  return mergedCanvas.toDataURL('image/png');
 }
 
 function downloadDataUrl(dataUrl, fileName) {

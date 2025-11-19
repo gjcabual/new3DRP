@@ -7,12 +7,37 @@ let selectedFurniture = null; // Track currently selected furniture
 let ITEMS_DATA = {}; // model_key -> {id, name, category, model_file_path}
 let PRICE_LIST = {}; // model_key -> estimated_price
 let ITEM_METADATA = {}; // model_key -> {name, model_file_path}
+let ITEM_PRICE_SOURCES = {}; // model_key -> [{store, price}]
 
 const STORAGE_MODEL_FILES = {
   table1: 'table1.obj',
+  center_table1: 'center_table1.obj',
+  center_table2: 'center_table2.obj',
   wardrobe1: 'wardrobe_modern.obj',
   wardrobe2: 'wardrobe_traditional.obj',
   wardrobe3: 'wardrobe_openframe.obj'
+};
+
+const STORAGE_BUCKET_FILES = new Set([
+  'wardrobe_modern.obj',
+  'wardrobe_traditional.obj',
+  'wardrobe_openframe.obj',
+  'center_table1.obj',
+  'center_table2.obj'
+]);
+
+const FALLBACK_ITEM_NAMES = {
+  center_table1: 'Center Table 1',
+  center_table2: 'Center Table 2',
+  wardrobe1: 'Wardrobe Modern',
+  wardrobe2: 'Wardrobe Traditional',
+  wardrobe3: 'Wardrobe Open Frame',
+  table1: 'Center Table'
+};
+
+const FALLBACK_ITEM_METADATA = {
+  center_table1: { name: 'Center Table 1', model_file_path: 'center_table1.obj' },
+  center_table2: { name: 'Center Table 2', model_file_path: 'center_table2.obj' }
 };
 
 /**
@@ -35,6 +60,7 @@ async function loadItemsAndPrices() {
     ITEMS_DATA = {};
     PRICE_LIST = {};
     ITEM_METADATA = {};
+    ITEM_PRICE_SOURCES = {};
 
     // Fetch all items
     const { data: items, error: itemsError } = await supabase
@@ -55,13 +81,18 @@ async function loadItemsAndPrices() {
       };
     });
 
-    // Ensure we have metadata entries for any known models even if not returned
+    // Apply fallback metadata for known models
     Object.keys(STORAGE_MODEL_FILES).forEach(key => {
       if (!ITEM_METADATA[key]) {
         ITEM_METADATA[key] = {
-          name: key,
-          model_file_path: STORAGE_MODEL_FILES[key]
+          name: FALLBACK_ITEM_NAMES[key] || key,
+          model_file_path: STORAGE_MODEL_FILES[key] || null
         };
+      }
+    });
+    Object.keys(FALLBACK_ITEM_METADATA).forEach(key => {
+      if (!ITEM_METADATA[key]) {
+        ITEM_METADATA[key] = { ...FALLBACK_ITEM_METADATA[key] };
       }
     });
 
@@ -85,6 +116,14 @@ async function loadItemsAndPrices() {
         pricesByModel[modelKey] = [];
       }
       pricesByModel[modelKey].push(price.price);
+
+      if (!ITEM_PRICE_SOURCES[modelKey]) {
+        ITEM_PRICE_SOURCES[modelKey] = [];
+      }
+      ITEM_PRICE_SOURCES[modelKey].push({
+        store: price.store_name,
+        price: price.price
+      });
     });
 
     // Calculate estimated prices
@@ -96,6 +135,9 @@ async function loadItemsAndPrices() {
     Object.keys(ITEM_METADATA).forEach(key => {
       if (typeof PRICE_LIST[key] === "undefined") {
         PRICE_LIST[key] = 0;
+      }
+      if (!ITEM_PRICE_SOURCES[key]) {
+        ITEM_PRICE_SOURCES[key] = [];
       }
     });
 
@@ -119,8 +161,8 @@ function getModelUrl(modelKey) {
     return `models/${modelKey}.obj`;
   }
 
-  // Check if it's a wardrobe file (should be in Supabase Storage)
-  if (filePath.includes('wardrobe')) {
+  // Check if file is stored in Supabase bucket
+  if (STORAGE_BUCKET_FILES.has(filePath)) {
     // Get public URL from Supabase Storage
     const { data } = supabase.storage.from('wardrobe-models').getPublicUrl(filePath);
     if (data?.publicUrl) {
@@ -138,7 +180,7 @@ function getModelUrl(modelKey) {
  * @returns {string} - Item display name
  */
 function getItemName(modelKey) {
-  return ITEM_METADATA[modelKey]?.name || modelKey;
+  return ITEM_METADATA[modelKey]?.name || FALLBACK_ITEM_NAMES[modelKey] || modelKey;
 }
 
 const costState = {
@@ -315,12 +357,6 @@ function handleDropIndicatorClick(e) {
 
 function goBack() {
   window.location.href = "index.html";
-}
-
-function toggleInstructions() {
-  const instructions = document.getElementById("instructions");
-  if (!instructions) return;
-  instructions.classList.toggle("hidden");
 }
 
 function toggleCostPanel() {
@@ -508,6 +544,32 @@ function peso3D(n) {
   })}`;
 }
 
+function buildSourcesMarkup(modelKey) {
+  const sources = ITEM_PRICE_SOURCES[modelKey] || [];
+  if (!sources.length) {
+    return `
+      <div class="cost-source-list" data-model="${modelKey}">
+        <div class="cost-source-empty">No sources available</div>
+      </div>
+    `;
+  }
+  const items = sources
+    .map(
+      (src) => `
+        <div class="cost-source-item">
+          <span>${src.store}</span>
+          <span>${peso(src.price)}</span>
+        </div>
+      `
+    )
+    .join("");
+  return `
+    <div class="cost-source-list" data-model="${modelKey}">
+      ${items}
+    </div>
+  `;
+}
+
 function renderCost() {
   // Update HTML panel if present (old cost panel)
   const itemsContainer = document.getElementById("cost-items");
@@ -529,29 +591,31 @@ function renderCost() {
     total += lineTotal;
     
     // HTML list (if exists - old panel)
+    const sourcesMarkup = buildSourcesMarkup(key);
+    const content = `
+      <div class="cost-item-details">
+        <div>
+          <div class="cost-item-name">${item.name}</div>
+          <div class="cost-item-meta">${item.qty} × ${peso(unitCost)} (unit cost)</div>
+        </div>
+        <div class="cost-source-controls">
+          <button class="cost-source-toggle" data-model="${key}">Sources</button>
+          ${sourcesMarkup}
+        </div>
+      </div>
+      <div class="cost-item-total">${peso(lineTotal)}</div>
+    `;
+
     if (itemsContainer) {
       const row = document.createElement("div");
       row.className = "cost-item";
-      row.innerHTML = `
-        <div>
-          <div class="cost-item-name">${item.name}</div>
-          <div class="cost-item-meta">${item.qty} × ${peso(unitCost)} (unit cost)</div>
-        </div>
-        <div>${peso(lineTotal)}</div>
-      `;
+      row.innerHTML = content;
       itemsContainer.appendChild(row);
     }
-    // New toggleable cost panel
     if (costItemsList) {
       const row = document.createElement("div");
       row.className = "cost-item";
-      row.innerHTML = `
-        <div>
-          <div class="cost-item-name">${item.name}</div>
-          <div class="cost-item-meta">${item.qty} × ${peso(unitCost)} (unit cost)</div>
-        </div>
-        <div>${peso(lineTotal)}</div>
-      `;
+      row.innerHTML = content;
       costItemsList.appendChild(row);
     }
   });
@@ -614,14 +678,66 @@ document.addEventListener("keydown", function (e) {
     grid.setAttribute("visible", !isVisible);
     console.log("Grid", isVisible ? "hidden" : "shown");
   }
-  if (e.key === "h" || e.key === "H") {
-    // Toggle instructions
-    e.preventDefault();
-    toggleInstructions();
-  }
+});
+
+document.addEventListener("click", function (e) {
+  const toggle = e.target.closest(".cost-source-toggle");
+  if (!toggle) return;
+  const modelKey = toggle.getAttribute("data-model");
+  const list = toggle.parentElement?.querySelector(
+    `.cost-source-list[data-model="${modelKey}"]`
+  );
+  if (!list) return;
+  list.classList.toggle("open");
 });
 
 // Sub-category functions
+function showCenterTableSubcategory() {
+  const sidePanel = document.getElementById("side-panel");
+  if (!sidePanel) return;
+
+  if (!sidePanel.dataset.originalContent) {
+    sidePanel.dataset.originalContent = sidePanel.innerHTML;
+  }
+
+  const table1Name = getItemName('center_table1');
+  const table2Name = getItemName('center_table2');
+
+  const centerTableContent = `
+    <div class="panel-header">
+      <button onclick="goBackToMainPanel()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px;">← Back</button>
+      <h3>🍽️ Center Table Options</h3>
+      <small>Choose a center table style</small>
+    </div>
+    <div class="model-category">
+      <div class="model-grid">
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="center_table1"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">🍽️</span>
+          <div class="model-name">${table1Name}</div>
+        </div>
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="center_table2"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">🍽️</span>
+          <div class="model-name">${table2Name}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  sidePanel.innerHTML = centerTableContent;
+  initializeDragAndDrop();
+  updateSubcategoryUI();
+}
+
 function showWardrobeSubcategory() {
   const sidePanel = document.getElementById("side-panel");
   const mainContent = sidePanel.querySelector(".panel-header").nextElementSibling;
@@ -681,6 +797,7 @@ function showWardrobeSubcategory() {
   
   // Re-initialize drag and drop for new items
   initializeDragAndDrop();
+  updateSubcategoryUI();
 }
 
 function goBackToMainPanel() {
@@ -689,6 +806,7 @@ function goBackToMainPanel() {
     sidePanel.innerHTML = sidePanel.dataset.originalContent;
     // Re-initialize drag and drop
     initializeDragAndDrop();
+    updateSubcategoryUI();
   }
 }
 
@@ -838,8 +956,8 @@ window.addEventListener("load", async function () {
     initAuthUI();
   }
 
-  // Update wardrobe names in UI
-  updateWardrobeUI();
+  // Update subcategory names in UI
+  updateSubcategoryUI();
   
   // Attach click event listener to drop indicator (attach once on load)
   const dropIndicator = document.getElementById("drop-indicator");
@@ -870,18 +988,18 @@ window.addEventListener("load", async function () {
 });
 
 /**
- * Update wardrobe UI with names from metadata
+ * Update subcategory UI with names from metadata
  */
-function updateWardrobeUI() {
-  // Update wardrobe subcategory names
-  const wardrobeItems = document.querySelectorAll('[data-model^="wardrobe"]');
-  wardrobeItems.forEach(item => {
-    const modelKey = item.getAttribute('data-model');
-    const nameEl = item.querySelector('.model-name');
-    if (nameEl && modelKey) {
-      const name = getItemName(modelKey);
-      nameEl.textContent = name;
-    }
+function updateSubcategoryUI() {
+  const selectors = ['[data-model^="wardrobe"]', '[data-model^="center_table"]'];
+  selectors.forEach(selector => {
+    document.querySelectorAll(selector).forEach(item => {
+      const modelKey = item.getAttribute('data-model');
+      const nameEl = item.querySelector('.model-name');
+      if (nameEl && modelKey) {
+        nameEl.textContent = getItemName(modelKey);
+      }
+    });
   });
 }
 

@@ -100,7 +100,6 @@ The core application logic for the 3D room planner:
 - **`handleDrop(e)`**: Handles furniture placement in the 3D scene
 - **`renderCost()`**: Updates cost estimation display
 - **`toggleCostPanel()`**: Shows/hides the cost panel
-- **`toggleInstructions()`**: Shows/hides instructions panel
 - **`deleteFurniture()`**: Removes furniture from the scene
 - **`rotateFurnitureLeft()` / `rotateFurnitureRight()`**: Rotates selected furniture
 

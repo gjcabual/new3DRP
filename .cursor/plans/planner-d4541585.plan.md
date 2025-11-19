@@ -1,28 +1,25 @@
-<!-- d4541585-7125-4dc3-9578-99800436b127 b195ba2b-22c2-4c3b-9137-53d966bef7bc -->
-# Cost Panel Updates & In-Wall Board Removal
+<!-- d4541585-7125-4dc3-9578-99800436b127 83612866-4feb-4a49-883e-bc087b7d1c29 -->
+# Snapshot Capture & Center Table Subcategory
 
-1. Remove In-Wall Cost Board
+1. Snapshot Capture Fix
+   - Review `js/utils/snapshot.js` to confirm which DOM node is passed to `html2canvas`
+   - Update the capture target to include the `<a-scene>` canvas (use `scene.renderer.domElement` or `scene.canvas`) so the workspace renders in the snapshot
+   - Ensure UI elements are hidden/restored as before; verify the downloaded image shows the room and furniture
 
-- Remove the entire `#cost-board` entity from `planner.html` (the white plane with estimated prices inside the 3D scene)
-- Remove or disable `renderPriceBoard()` function calls in `js/planner.js` since the board no longer exists
-- Clean up any related positioning code that references the cost board
+2. Center Table Subcategory
+   - In `planner.html`, change the Tables section root item so clicking on “Center Table” opens a new sub-panel (similar to the existing wardrobe subcategory)
+   - Add markup for the new subcategory with two draggable items: Center Table 1 & Center Table 2
+   - Update `js/planner.js` with metadata keys (`centerTable1`, `centerTable2`) and register Supabase storage filenames (`center_table1.obj`, `center_table2.obj`) in `STORAGE_MODEL_FILES`
+   - Extend item loading / drag handling to allow these new model keys; ensure they appear in the cost estimator and render properly
+   - Replicate the Wardrobe UI toggle logic (show/hide subcategories, back button if needed)
 
-2. Cost Panel Icon-Only Collapse
-
-- Update `css/planner.css` so when `#cost-panel.collapsed`, it shrinks to show only the header/icon (similar to instructions panel behavior)
-- Modify the collapse animation to transform the panel to a minimal width showing just the 💰 icon
-- Ensure the toggle button still works and the panel can expand back to full size
-- Update `toggleCostPanel()` in `js/planner.js` if needed to handle the new collapse state
-
-3. Fix Wardrobe Model File References
-
-- Update the wardrobe model file mappings in `js/planner.js` to match the actual bucket filenames:
-- wardrobe1 → `wardrobe_modern.obj`
-- wardrobe2 → `wardrobe_traditional.obj` (fix any incorrect reference)
-- wardrobe3 → `wardrobe_openframe.obj`
-- Ensure `getModelUrl()` correctly resolves wardrobe2 to the `wardrobe_traditional.obj` file from the `wardrobe-models` bucket
+3. Testing & Docs
+   - Verify snapshot button captures the room
+   - Drag both center tables into the room to confirm models load from Supabase storage
+   - Update any relevant documentation or comments if necessary
 
 ### To-dos
 
 - [ ] Remove in-wall cost board from HTML and JS
 - [ ] Update cost panel to collapse to icon-only state
+- [ ] Fix wardrobe2 model file reference to match bucket filename

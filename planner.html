@@ -49,13 +49,6 @@
         >
           🖼️ Save Snapshot
         </button>
-        <button
-          type="button"
-          class="profile-dropdown-item"
-          onclick="toggleInstructions()"
-        >
-          ❔ Toggle Instructions
-        </button>
         <div class="profile-dropdown-divider"></div>
         <button
           type="button"
@@ -97,7 +90,7 @@
       <!-- Cost Estimator Panel -->
       <div id="cost-panel" class="hidden">
         <div class="cost-header" onclick="toggleCostPanel()">
-          <h3>💰 Project Cost</h3>
+          <h3>💰 Estimated Project Cost</h3>
           <button class="cost-toggle-btn" aria-label="Toggle Cost Panel">
             ▼
           </button>
@@ -112,7 +105,14 @@
       </div>
 
       <!-- Instructions -->
-      <div id="instructions" class="hidden">
+      <div id="instructions">
+        <div
+          class="instructions-button"
+          aria-label="Instructions"
+          title="Instructions"
+        >
+          ❔
+        </div>
         <div class="instructions-content">
           <p><strong>🎮 Controls:</strong></p>
           <p>W/A/S/D → Move around</p>
@@ -164,9 +164,9 @@
         <div class="model-grid">
           <div
             class="model-item enabled"
-            draggable="true"
-            data-model="table1"
-            data-scale="1 1 1"
+            draggable="false"
+            data-category="center-table"
+            onclick="showCenterTableSubcategory()"
           >
             <span class="model-icon">
               <!-- Inline SVG: simple table icon -->
@@ -342,6 +342,7 @@
       embedded
       style="height: 100vh; width: 100vw"
       vr-mode-ui="enabled: false"
+      renderer="preserveDrawingBuffer: true"
     >
       <!-- Sky/Background -->
       <a-sky color="#000000"></a-sky>

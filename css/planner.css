@@ -160,11 +160,44 @@ body {
   flex-direction: column;
   gap: 12px;
   z-index: 1200;
+  align-items: flex-end;
 }
 
-/* Instructions & Cost Panel HUD */
+/* Instructions Hover Panel */
 #instructions {
-  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.instructions-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #343434 0%, #181818 100%);
+  color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#instructions:hover .instructions-button {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+#instructions .instructions-content {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 12px);
+  width: 320px;
   background: rgba(0, 0, 0, 0.85);
   color: white;
   padding: 20px;
@@ -173,10 +206,17 @@ body {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1201;
 }
 
-.instructions-content {
-  padding-right: 0;
+#instructions:hover .instructions-content {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 #snapshot-btn {
@@ -304,6 +344,72 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 0.95em;
   color: #f5f5f5;
+}
+
+.cost-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.cost-item-total {
+  font-weight: 600;
+  color: #f5f5f5;
+  margin-left: 12px;
+}
+
+.cost-source-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cost-source-toggle {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f5f5f5;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.8em;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.cost-source-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.cost-source-list {
+  display: none;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.cost-source-list.open {
+  display: block;
+}
+
+.cost-source-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85em;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cost-source-item:last-child {
+  border-bottom: none;
+}
+
+.cost-source-empty {
+  font-size: 0.8em;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .cost-item > div:last-child {
