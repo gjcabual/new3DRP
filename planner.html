@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="css/planner.css" />
     <link rel="stylesheet" href="css/auth.css" />
     <link rel="stylesheet" href="css/profile.css" />
+    <link rel="stylesheet" href="css/dialog.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
@@ -21,8 +22,10 @@
     <script src="js/utils/supabase.js"></script>
     <script src="js/auth/auth.js"></script>
     <script src="js/auth/auth-ui.js"></script>
-    <script src="js/utils/snapshot.js"></script>
+    <script src="js/utils/cost-estimation.js"></script>
     <script src="js/utils/migrate-data.js"></script>
+    <script src="js/utils/dialog.js"></script>
+    <script src="js/utils/snapshot.js"></script>
     <script src="js/components/profile-menu.js"></script>
     <!-- Main Application Script -->
     <script src="js/planner.js"></script>
@@ -42,13 +45,6 @@
             user@example.com
           </div>
         </div>
-        <button
-          type="button"
-          class="profile-dropdown-item"
-          onclick="handleSnapshotClick()"
-        >
-          🖼️ Save Snapshot
-        </button>
         <div class="profile-dropdown-divider"></div>
         <button
           type="button"
@@ -76,66 +72,99 @@
       </div>
     </div>
 
-    <!-- Snapshot Action Button -->
-    <button
-      id="snapshot-btn"
-      aria-label="Save Snapshot"
-      title="Save Snapshot"
-      onclick="handleSnapshotClick()"
-    >
-      🖼️
-    </button>
+    <!-- Instructions -->
+    <div id="instructions">
+      <div
+        class="instructions-button"
+        aria-label="Instructions"
+        title="Instructions"
+      >
+        ❔
+      </div>
+      <div class="instructions-content">
+        <p><strong>🎮 Controls:</strong></p>
+        <p>W/A/S/D → Move around</p>
+        <p>Q → Move Up | E → Move Down</p>
+        <p>Mouse → Look around</p>
+        <hr style="margin: 10px 0; border-color: #666" />
+        <p><strong>🍽️ Furniture:</strong></p>
+        <p>📦 Click panel button to open library</p>
+        <p>🖱️ Drag the center table into your room</p>
+        <p>🖱️ Click an item to show more options</p>
+        <hr style="margin: 10px 0; border-color: #666" />
+        <p><strong>📊 Cost Board:</strong></p>
+        <p>📋 Simple white panel - positioned at right wall</p>
+        <p>💰 Shows costs and total</p>
+        <p>👀 Walk around to view from different angles</p>
+        <p
+          id="room-info"
+          style="
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #666;
+          "
+        ></p>
+      </div>
+    </div>
+
+    <!-- Sources Panel (hidden by default) -->
+    <div id="sources-panel">
+      <div class="sources-panel-header">
+        <h3 id="sources-panel-title">Item Sources</h3>
+        <button
+          class="sources-close-btn"
+          onclick="closeSourcesPanel()"
+          aria-label="Close Sources Panel"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 5L5 15M5 5L15 15"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="sources-panel-body" id="sources-panel-content">
+        <div class="sources-empty">Select an item to view sources</div>
+      </div>
+    </div>
 
     <div id="hud-stack">
       <!-- Cost Estimator Panel -->
-      <div id="cost-panel" class="hidden">
+      <div id="cost-panel" class="collapsed">
         <div class="cost-header" onclick="toggleCostPanel()">
           <h3>💰 Estimated Project Cost</h3>
           <button class="cost-toggle-btn" aria-label="Toggle Cost Panel">
             ▼
           </button>
         </div>
-        <div class="cost-body" id="cost-items"></div>
+        <div class="cost-body" id="cost-items-list"></div>
         <div class="cost-footer">
           <div class="cost-total-row">
             <span>Total:</span>
             <span id="cost-total-display">₱0.00</span>
           </div>
-        </div>
-      </div>
-
-      <!-- Instructions -->
-      <div id="instructions">
-        <div
-          class="instructions-button"
-          aria-label="Instructions"
-          title="Instructions"
-        >
-          ❔
-        </div>
-        <div class="instructions-content">
-          <p><strong>🎮 Controls:</strong></p>
-          <p>W/A/S/D → Move around</p>
-          <p>Q → Move Up | E → Move Down</p>
-          <p>Mouse → Look around</p>
-          <hr style="margin: 10px 0; border-color: #666" />
-          <p><strong>🍽️ Furniture:</strong></p>
-          <p>📦 Click panel button to open library</p>
-          <p>🖱️ Drag the center table into your room</p>
-          <p>🖱️ Click an item to show more options</p>
-          <hr style="margin: 10px 0; border-color: #666" />
-          <p><strong>📊 Cost Board:</strong></p>
-          <p>📋 Simple white panel - positioned at right wall</p>
-          <p>💰 Shows costs and total</p>
-          <p>👀 Walk around to view from different angles</p>
-          <p
-            id="room-info"
-            style="
-              margin-top: 10px;
-              padding-top: 10px;
-              border-top: 1px solid #666;
-            "
-          ></p>
+          <div class="cost-save-row">
+            <button
+              id="save-estimation-btn"
+              class="cost-save-btn"
+              onclick="handleSaveEstimation()"
+            >
+              Save
+            </button>
+            <span
+              id="save-estimation-notification"
+              class="save-notification"
+            ></span>
+          </div>
         </div>
       </div>
     </div>
@@ -146,15 +175,18 @@
     <!-- Admin Link (legacy, replaced by profile menu) -->
     <a href="admin.html" id="admin-link" style="display: none">Admin Panel</a>
 
-    <!-- Back Button -->
-    <button id="back-button" onclick="goBack()">← Back to Setup</button>
-
     <!-- Side Panel Toggle Button -->
     <button id="panel-toggle" onclick="togglePanel()">📦</button>
 
     <!-- Side Panel with 3D Models -->
     <div id="side-panel">
       <div class="panel-header">
+        <button
+          class="resize-dimension-btn"
+          onclick="showResizeDimensionPanel()"
+        >
+          📐 Resize Dimension
+        </button>
         <h3>🎯 Furniture Library</h3>
         <small>Drag & drop furniture into your room</small>
       </div>
@@ -312,27 +344,192 @@
       </div>
     </div>
 
+    <!-- Resize Dimension Panel (hidden by default) -->
+    <div id="resize-dimension-panel">
+      <div class="panel-header">
+        <button
+          onclick="goBackToMainPanel()"
+          style="
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #f5f5f5;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+          "
+          onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'"
+          onmouseout="this.style.background='rgba(255, 255, 255, 0.08)'"
+        >
+          ← Back
+        </button>
+        <h3>📐 Resize Room Dimensions</h3>
+        <small>Enter your room dimensions in meters</small>
+      </div>
+      <div class="resize-dimension-content">
+        <div class="dimension-input-group">
+          <label for="room-width-input">Width (m)</label>
+          <input
+            type="number"
+            id="room-width-input"
+            step="0.1"
+            min="1"
+            placeholder="Enter width"
+          />
+        </div>
+        <div class="dimension-input-group">
+          <label for="room-length-input">Length (m)</label>
+          <input
+            type="number"
+            id="room-length-input"
+            step="0.1"
+            min="1"
+            placeholder="Enter length"
+          />
+        </div>
+        <div class="dimension-input-group">
+          <label for="room-height-input">Height (m)</label>
+          <input
+            type="number"
+            id="room-height-input"
+            step="0.1"
+            min="1"
+            placeholder="Enter height"
+          />
+        </div>
+        <button class="dimension-save-btn" onclick="saveRoomDimensions()">
+          Save Dimensions
+        </button>
+      </div>
+    </div>
+
     <!-- Drop Indicator -->
     <div class="drop-indicator" id="drop-indicator">📍 Drop Item Here</div>
 
     <!-- Furniture Control Panel -->
     <div id="furniture-control-panel">
-      <button class="close-controls" onclick="closeControlPanel()">×</button>
+      <button class="close-controls" onclick="closeControlPanel()">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M15 5L5 15M5 5L15 15"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
       <h3 id="control-panel-title">Furniture Controls</h3>
       <div class="control-buttons">
-        <button class="control-btn rotate-left" onclick="rotateFurnitureLeft()">
-          ↶ Rotate Left
+        <button
+          class="control-btn rotate-left"
+          onclick="rotateFurnitureLeft()"
+          title="Rotate Left"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12Z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M9 12L12 9L15 12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M12 9V15"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
         </button>
         <button
           class="control-btn rotate-right"
           onclick="rotateFurnitureRight()"
+          title="Rotate Right"
         >
-          ↷ Rotate Right
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12Z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M15 12L12 15L9 12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M12 15V9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
         </button>
-        <button class="control-btn delete" onclick="deleteFurniture()">
-          🗑️ Delete
+        <button
+          class="control-btn delete"
+          onclick="deleteFurniture()"
+          title="Delete"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 6H5H21"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M10 11V17"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M14 11V17"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
         </button>
-        <button class="control-btn color" disabled>🎨 Color (Soon)</button>
       </div>
     </div>
 
@@ -429,6 +626,15 @@
             Sign Up
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Dialog Modal -->
+    <div id="dialog-modal">
+      <div id="dialog-content">
+        <h2 id="dialog-title">Dialog</h2>
+        <p id="dialog-message"></p>
+        <div id="dialog-buttons"></div>
       </div>
     </div>
   </body>

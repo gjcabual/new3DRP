@@ -4,37 +4,65 @@
     <meta charset="utf-8" />
     <title>3D Room Planner - Welcome</title>
     <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/dialog.css" />
+    <script src="js/utils/dialog.js"></script>
   </head>
   <body>
     <div class="intro-container">
-      <h1>🏠 3D Room Planner</h1>
-      <p>Enter your room dimensions to get started</p>
+      <h1 class="main-title">
+        <span class="title-3d">3D</span>
+        <span class="title-room">ROOM PLANNER</span>
+      </h1>
+      <p class="subtitle">Enter your room dimensions to get started</p>
 
-      <div class="dimension-inputs">
-        <div class="input-group">
-          <label>Width</label>
-          <input
-            type="number"
-            id="room-width"
-            placeholder="5"
-            min="1"
-            max="20"
-          />
-          <small style="color: #999; margin-top: 5px">M</small>
+      <div class="room-visualization">
+        <!-- 3D Wireframe Cube -->
+        <div class="wireframe-cube">
+          <div class="cube-face cube-front"></div>
+          <div class="cube-face cube-back"></div>
+          <div class="cube-face cube-right"></div>
+          <div class="cube-face cube-left"></div>
+          <div class="cube-face cube-top"></div>
+          <div class="cube-face cube-bottom"></div>
         </div>
 
-        <div class="dimension-separator">×</div>
+        <!-- Dimension Inputs positioned around the cube -->
+        <div class="dimension-inputs-wrapper">
+          <div class="dimension-input-group dimension-width">
+            <label class="dimension-label">W:</label>
+            <input
+              type="number"
+              id="room-width"
+              class="dimension-input"
+              placeholder="_"
+              min="1"
+              max="20"
+            />
+          </div>
 
-        <div class="input-group">
-          <label>Length</label>
-          <input
-            type="number"
-            id="room-length"
-            placeholder="6"
-            min="1"
-            max="20"
-          />
-          <small style="color: #999; margin-top: 5px">M</small>
+          <div class="dimension-input-group dimension-height">
+            <label class="dimension-label">H:</label>
+            <input
+              type="number"
+              id="room-height"
+              class="dimension-input"
+              placeholder="_"
+              min="1"
+              max="20"
+            />
+          </div>
+
+          <div class="dimension-input-group dimension-length">
+            <label class="dimension-label">L:</label>
+            <input
+              type="number"
+              id="room-length"
+              class="dimension-input"
+              placeholder="_"
+              min="1"
+              max="20"
+            />
+          </div>
         </div>
       </div>
 
@@ -42,9 +70,15 @@
         Start Planning
       </button>
 
-      <div class="hint">
-        💡 Example: W=5M × L=6M for a medium bedroom<br />
-        Recommended range: 1-20M per dimension
+      <div class="hint">Recommended range: 1-20M per dimension</div>
+    </div>
+
+    <!-- Dialog Modal -->
+    <div id="dialog-modal">
+      <div id="dialog-content">
+        <h2 id="dialog-title">Dialog</h2>
+        <p id="dialog-message"></p>
+        <div id="dialog-buttons"></div>
       </div>
     </div>
 

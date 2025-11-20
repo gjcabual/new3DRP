@@ -1,3 +1,4 @@
+// snapshot.js (UPDATED)
 // Snapshot utility for saving and loading room plans
 
 const LOCAL_ROOM_PLANS_KEY = 'localRoomPlans';
@@ -38,7 +39,7 @@ function collectRoomPlanData() {
   }
   
   // Get current cost total
-  const costTotal = costState?.total || 0;
+  const costTotal = (typeof costState !== 'undefined' && costState?.total) ? costState.total : 0;
   
   return {
     room_width: roomWidth,
@@ -76,43 +77,88 @@ function deleteLocalRoomPlan(planId) {
   return plans;
 }
 
-async function capturePlannerScreenshot() {
-  const scene = document.querySelector('a-scene');
-  if (!scene) {
-    throw new Error('A-Frame scene not found for screenshot.');
-  }
+/**
+ * Wait until A-Frame scene is loaded and the WebGL canvas is present.
+ * Resolves with the canvas element when ready.
+ */
+function waitForAFrameCanvas(timeout = 3000) {
+  return new Promise((resolve, reject) => {
+    const scene = document.querySelector('a-scene');
+    if (!scene) {
+      reject(new Error('A-Frame scene not found.'));
+      return;
+    }
 
-  const rendererCanvas = scene.renderer?.domElement || document.querySelector('canvas.a-canvas');
-  if (!rendererCanvas) {
-    throw new Error('Unable to locate scene canvas for screenshot.');
-  }
+    let timedOut = false;
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      reject(new Error('Timed out waiting for A-Frame canvas to become ready.'));
+    }, timeout);
 
-  let uiCanvas = null;
-  if (window.html2canvas) {
-    uiCanvas = await window.html2canvas(document.body, {
-      backgroundColor: null,
-      useCORS: true,
-      logging: false,
-      scale: 1,
-      ignoreElements: element => {
-        if (!element) return false;
-        if (element.tagName === 'A-SCENE') return true;
-        return !!(element.closest && element.closest('a-scene'));
+    const tryGetCanvas = () => {
+      // A-Frame uses canvas with class 'a-canvas'
+      const canvas = document.querySelector('canvas.a-canvas');
+      if (canvas && canvas.width > 0 && canvas.height > 0) {
+        clearTimeout(timeoutId);
+        resolve(canvas);
+        return true;
       }
-    });
+      return false;
+    };
+
+    // If scene already reports loaded, try immediately
+    const isLoaded = scene.hasLoaded || scene.loaded || false;
+    if (isLoaded && tryGetCanvas()) return;
+
+    // Otherwise wait for the loaded event and try
+    const onLoaded = () => {
+      // slight delay to ensure final render
+      setTimeout(() => {
+        if (!timedOut && tryGetCanvas()) {
+          // resolved inside tryGetCanvas
+        } else if (!timedOut) {
+          // Maybe canvas not yet ready; poll briefly
+          const pollInterval = setInterval(() => {
+            if (tryGetCanvas()) {
+              clearInterval(pollInterval);
+            }
+          }, 100);
+        }
+      }, 150); // small extra wait
+    };
+
+    scene.addEventListener('loaded', onLoaded, { once: true });
+
+    // also attempt immediate polling (in case loaded already)
+    const initialPoll = setInterval(() => {
+      if (tryGetCanvas()) {
+        clearInterval(initialPoll);
+      }
+    }, 100);
+  });
+}
+
+/**
+ * Capture the A-Frame WebGL canvas and return a PNG data URL.
+ * Throws an error with a helpful message if the canvas is tainted (CORS) or missing.
+ */
+async function capturePlannerScreenshot() {
+  // wait for canvas
+  const canvas = await waitForAFrameCanvas().catch(err => {
+    throw new Error(`Unable to capture screenshot: ${err.message}`);
+  });
+
+  // Small extra wait to allow textures/materials to finish
+  await new Promise(r => setTimeout(r, 150));
+
+  try {
+    const dataUrl = canvas.toDataURL('image/png');
+    return dataUrl;
+  } catch (err) {
+    // Canvas.toDataURL throws a DOMException if canvas is tainted (cross-origin)
+    console.error('Error converting canvas to data URL:', err);
+    throw new Error('Screenshot failed: the WebGL canvas appears to be tainted by cross-origin resources. Ensure your 3D assets (models/textures) are served with proper CORS headers and loaded with crossorigin attributes.');
   }
-
-  const mergedCanvas = document.createElement('canvas');
-  mergedCanvas.width = rendererCanvas.width;
-  mergedCanvas.height = rendererCanvas.height;
-  const ctx = mergedCanvas.getContext('2d');
-
-  ctx.drawImage(rendererCanvas, 0, 0, mergedCanvas.width, mergedCanvas.height);
-  if (uiCanvas) {
-    ctx.drawImage(uiCanvas, 0, 0, mergedCanvas.width, mergedCanvas.height);
-  }
-
-  return mergedCanvas.toDataURL('image/png');
 }
 
 function downloadDataUrl(dataUrl, fileName) {
@@ -145,9 +191,10 @@ async function handleSnapshotClick() {
   }
   
   try {
-    const nameInput = prompt('Enter a name for this snapshot:', '');
+    const nameInput = await showPrompt('Enter a name for this snapshot:', '', 'Save Snapshot');
     const snapshotName = (nameInput && nameInput.trim()) || `Room Plan ${new Date().toLocaleString()}`;
-    
+
+    // Capture screenshot directly from WebGL canvas
     const screenshotDataUrl = await capturePlannerScreenshot();
     const safeFileName = `${slugifyFileName(snapshotName)}.png`;
     downloadDataUrl(screenshotDataUrl, safeFileName);
@@ -165,14 +212,17 @@ async function handleSnapshotClick() {
     };
     
     addLocalRoomPlan(localPlan);
-    alert('Snapshot downloaded and saved to your plans!');
+    await showDialog('Snapshot downloaded and saved to your plans!', 'Success');
   } catch (error) {
     console.error('Error capturing snapshot:', error);
-    alert('Unable to save snapshot. Please try again.');
+    const message = error && error.message ? error.message : 'Unable to save snapshot. Please try again.';
+    await showDialog(message, 'Error');
   }
 }
 
 // Expose helpers globally for other modules (profile page, etc.)
 window.getLocalRoomPlans = getLocalRoomPlans;
 window.deleteLocalRoomPlan = deleteLocalRoomPlan;
-
+window.handleSnapshotClick = handleSnapshotClick;
+window.capturePlannerScreenshot = capturePlannerScreenshot;
+window.collectRoomPlanData = collectRoomPlanData;

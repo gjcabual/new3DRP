@@ -4,9 +4,12 @@
     <meta charset="utf-8" />
     <title>Admin Panel - 3D Room Planner</title>
     <link rel="stylesheet" href="css/admin.css" />
+    <link rel="stylesheet" href="css/dialog.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/utils/supabase.js"></script>
     <script src="js/auth/auth.js"></script>
+    <script src="js/utils/dialog.js"></script>
+    <script src="js/utils/workspace-state.js"></script>
     <script src="js/admin.js"></script>
   </head>
   <body>
@@ -14,7 +17,9 @@
       <header class="admin-header">
         <h1>🔧 Admin Panel</h1>
         <div class="admin-actions">
-          <a href="planner.html" class="btn-secondary">← Back to Planner</a>
+          <button class="btn-secondary" onclick="goBackToPlanner()">
+            ← Back to Planner
+          </button>
           <button
             id="sign-out-btn"
             class="btn-secondary"
@@ -132,6 +137,15 @@
             <div id="items-list"></div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Dialog Modal -->
+    <div id="dialog-modal">
+      <div id="dialog-content">
+        <h2 id="dialog-title">Dialog</h2>
+        <p id="dialog-message"></p>
+        <div id="dialog-buttons"></div>
       </div>
     </div>
   </body>

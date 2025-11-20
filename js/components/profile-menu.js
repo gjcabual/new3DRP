@@ -102,7 +102,11 @@ async function handleProfileLogout() {
   if (result.success) {
     window.location.reload();
   } else {
-    alert('Error signing out: ' + result.error);
+    if (typeof showDialog === 'function') {
+      showDialog('Error signing out: ' + result.error, 'Error');
+    } else {
+      alert('Error signing out: ' + result.error);
+    }
   }
 }
 

@@ -142,15 +142,27 @@ async function initMigration() {
   const userIsAdmin = await isAdmin();
   if (!userIsAdmin) {
     console.error('Migration requires admin privileges');
-    alert('Migration requires admin privileges');
+    if (typeof showDialog === 'function') {
+      await showDialog('Migration requires admin privileges', 'Access Denied');
+    } else {
+      alert('Migration requires admin privileges');
+    }
     return;
   }
 
   const result = await runMigration();
   if (result.success) {
-    alert('Migration completed successfully!');
+    if (typeof showDialog === 'function') {
+      await showDialog('Migration completed successfully!', 'Success');
+    } else {
+      alert('Migration completed successfully!');
+    }
   } else {
-    alert('Migration failed: ' + result.error);
+    if (typeof showDialog === 'function') {
+      await showDialog('Migration failed: ' + result.error, 'Error');
+    } else {
+      alert('Migration failed: ' + result.error);
+    }
   }
 }
 

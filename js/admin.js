@@ -476,7 +476,7 @@ async function handleSignOut() {
   if (result.success) {
     window.location.href = 'planner.html';
   } else {
-    alert('Error signing out: ' + result.error);
+    await showDialog('Error signing out: ' + result.error, 'Error');
   }
 }
 

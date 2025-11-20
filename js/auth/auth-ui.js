@@ -1,7 +1,6 @@
 // Authentication UI components and handlers
 
 let authModalOpen = false;
-let pendingSnapshotCallback = null;
 
 /**
  * Show authentication modal
@@ -12,7 +11,6 @@ function showAuthModal(onSuccess) {
   if (modal) {
     modal.style.display = 'flex';
     authModalOpen = true;
-    pendingSnapshotCallback = onSuccess;
     
     // Disable camera look controls
     disableCameraControls();
@@ -35,7 +33,6 @@ function hideAuthModal() {
   if (modal) {
     modal.style.display = 'none';
     authModalOpen = false;
-    pendingSnapshotCallback = null;
     // Clear form
     document.getElementById('auth-email').value = '';
     document.getElementById('auth-password').value = '';
@@ -121,17 +118,9 @@ async function handleAuthSubmit() {
         ? 'Account created successfully! You can now save your room plan.' 
         : 'Signed in successfully!';
       
-      // Call pending callback if exists
-      if (pendingSnapshotCallback) {
-        setTimeout(async () => {
-          hideAuthModal();
-          await pendingSnapshotCallback();
-        }, 1000);
-      } else {
-        setTimeout(() => {
-          hideAuthModal();
-        }, 1500);
-      }
+      setTimeout(() => {
+        hideAuthModal();
+      }, 1500);
     } else {
       errorEl.textContent = result.error || 'Authentication failed';
       submitBtn.disabled = false;
@@ -150,26 +139,11 @@ async function handleAuthSubmit() {
 async function updateAuthUI() {
   const isAuthenticated = await checkAuth();
   const user = await getCurrentUser();
-  const snapshotBtn = document.getElementById('snapshot-btn');
-  const userInfo = document.getElementById('user-info');
   const costPanel = document.getElementById('cost-panel');
 
-  if (snapshotBtn) {
-    if (isAuthenticated) {
-      snapshotBtn.style.display = 'none';
-    } else {
-      snapshotBtn.style.display = 'flex';
-      snapshotBtn.textContent = '🖼️';
-      snapshotBtn.title = 'Sign in required to save';
-    }
-  }
-
+  // Cost panel is now always visible, regardless of authentication status
   if (costPanel) {
-    costPanel.classList.toggle('hidden', !isAuthenticated);
-  }
-
-  if (userInfo) {
-    userInfo.style.display = 'none';
+    costPanel.classList.remove('hidden');
   }
 
   if (typeof updateProfileMenu === 'function') {

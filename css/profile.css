@@ -8,9 +8,10 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: #f5f5f5;
-  color: #333;
+  background: #1a1a1a;
+  color: #f5f5f5;
   line-height: 1.6;
+  min-height: 100vh;
 }
 
 #profile-circle {
@@ -133,7 +134,7 @@ body {
   margin: 4px 0;
 }
 
-/* Profile Page Styles */
+/* Profile Page Styles - Dark Theme */
 .profile-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -141,15 +142,17 @@ body {
 }
 
 .profile-header {
-  background: white;
+  background: rgba(15, 15, 15, 0.96);
+  backdrop-filter: blur(10px);
   padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   margin-bottom: 20px;
 }
 
 .profile-header h1 {
-  color: #4CAF50;
+  color: #f5f5f5;
   font-size: 28px;
   margin-bottom: 20px;
 }
@@ -162,15 +165,16 @@ body {
 
 .info-item {
   padding: 15px;
-  background: #f9f9f9;
-  border-radius: 5px;
-  border-left: 4px solid #4CAF50;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .info-item label {
   display: block;
   font-size: 12px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 5px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -179,18 +183,20 @@ body {
 .info-item .value {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: #f5f5f5;
 }
 
 .plans-section {
-  background: white;
+  background: rgba(15, 15, 15, 0.96);
+  backdrop-filter: blur(10px);
   padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .plans-section h2 {
-  color: #333;
+  color: #f5f5f5;
   font-size: 24px;
   margin-bottom: 20px;
 }
@@ -202,14 +208,16 @@ body {
 
 .plan-card {
   padding: 20px;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  background: #f9f9f9;
-  transition: box-shadow 0.2s;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
 }
 
 .plan-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .plan-header {
@@ -226,26 +234,26 @@ body {
 .plan-total span {
   display: block;
   font-size: 12px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .plan-total strong {
   font-size: 20px;
-  color: #4CAF50;
+  color: #f5f5f5;
 }
 
 .plan-name {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: #f5f5f5;
   margin-bottom: 5px;
 }
 
 .plan-date {
   font-size: 12px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .plan-details {
@@ -261,14 +269,54 @@ body {
 
 .plan-detail-item label {
   display: block;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 12px;
   margin-bottom: 3px;
 }
 
 .plan-detail-item .value {
   font-weight: 600;
-  color: #333;
+  color: #f5f5f5;
+}
+
+.cost-breakdown {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cost-breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cost-breakdown-item:last-child {
+  border-bottom: none;
+}
+
+.cost-breakdown-item span:first-child {
+  color: #f5f5f5;
+  flex: 1;
+}
+
+.cost-breakdown-item span:last-child {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  margin-left: 10px;
+}
+
+.cost-breakdown-empty {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-style: italic;
+  padding: 8px 0;
 }
 
 .plan-actions {
@@ -278,55 +326,60 @@ body {
 
 .btn-primary {
   padding: 8px 15px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f5f5f5;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .btn-primary:hover {
-  background: #45a049;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .btn-danger {
   padding: 8px 15px;
-  background: #d32f2f;
-  color: white;
-  border: none;
-  border-radius: 5px;
+  background: rgba(211, 47, 47, 0.2);
+  color: #f5f5f5;
+  border: 1px solid rgba(211, 47, 47, 0.3);
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .btn-danger:hover {
-  background: #c62828;
+  background: rgba(211, 47, 47, 0.3);
+  border-color: rgba(211, 47, 47, 0.5);
 }
 
 .btn-secondary {
   padding: 8px 15px;
-  background: #666;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f5f5;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
   font-size: 14px;
   text-decoration: none;
   display: inline-block;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .btn-secondary:hover {
-  background: #555;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .empty-state {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .empty-state p {
@@ -337,15 +390,15 @@ body {
 .loading {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .error-message {
-  background: #ffebee;
-  color: #c62828;
+  background: rgba(198, 40, 40, 0.15);
+  color: #f5f5f5;
   padding: 15px;
-  border-radius: 5px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  border-left: 4px solid #c62828;
+  border-left: 4px solid rgba(198, 40, 40, 0.5);
+  border: 1px solid rgba(198, 40, 40, 0.3);
 }
-

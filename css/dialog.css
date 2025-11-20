@@ -1,0 +1,187 @@
+/* Dialog Modal Styles - Similar to auth modal */
+
+#dialog-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10001;
+  justify-content: center;
+  align-items: center;
+}
+
+#dialog-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+#dialog-title {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+#dialog-message {
+  margin: 0 0 20px 0;
+  color: #555;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.dialog-input-container {
+  margin: 15px 0 20px 0;
+}
+
+.dialog-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.dialog-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+#dialog-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.dialog-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-width: 80px;
+}
+
+.dialog-btn-primary {
+  background: #4CAF50;
+  color: white;
+}
+
+.dialog-btn-primary:hover {
+  background: #45a049;
+}
+
+.dialog-btn-secondary {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.dialog-btn-secondary:hover {
+  background: #d0d0d0;
+}
+
+.dialog-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Welcome Dialog Styles */
+#dialog-content.welcome-dialog {
+  background: rgba(15, 15, 15, 0.98);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 500px;
+  padding: 40px;
+  color: #f5f5f5;
+}
+
+.welcome-dialog-content {
+  color: #f5f5f5;
+}
+
+.welcome-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  text-align: center;
+}
+
+.welcome-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin: 0 0 30px 0;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.welcome-section {
+  margin: 25px 0;
+}
+
+.welcome-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+}
+
+.welcome-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.welcome-section li {
+  padding: 8px 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.welcome-section li strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.welcome-tip {
+  margin-top: 30px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.welcome-tip strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+#dialog-content.welcome-dialog .dialog-btn-primary {
+  background: #ffffff;
+  color: #0a0a0a;
+  font-weight: 600;
+  padding: 12px 32px;
+  margin-top: 20px;
+}
+
+#dialog-content.welcome-dialog .dialog-btn-primary:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+

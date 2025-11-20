@@ -4,10 +4,13 @@
     <meta charset="utf-8" />
     <title>Profile - 3D Room Planner</title>
     <link rel="stylesheet" href="css/profile.css" />
+    <link rel="stylesheet" href="css/dialog.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/utils/supabase.js"></script>
     <script src="js/auth/auth.js"></script>
-    <script src="js/utils/snapshot.js"></script>
+    <script src="js/utils/cost-estimation.js"></script>
+    <script src="js/utils/dialog.js"></script>
+    <script src="js/utils/workspace-state.js"></script>
     <script src="js/profile.js"></script>
   </head>
   <body>
@@ -15,7 +18,9 @@
       <header class="profile-header">
         <h1>👤 My Profile</h1>
         <div style="display: flex; gap: 10px; margin-top: 20px">
-          <a href="planner.html" class="btn-secondary">← Back to Planner</a>
+          <button class="btn-secondary" onclick="goBackToPlanner()">
+            ← Back to Planner
+          </button>
           <button class="btn-secondary" onclick="handleLogout()">Logout</button>
         </div>
       </header>
@@ -47,7 +52,7 @@
               <div class="value" id="profile-created">-</div>
             </div>
             <div class="info-item">
-              <label>Total Saved Plans</label>
+              <label>Total Saved Estimations</label>
               <div class="value" id="profile-plans-count">0</div>
             </div>
           </div>
@@ -59,9 +64,18 @@
           class="plans-section"
           style="display: none; margin-top: 20px"
         >
-          <h2>My Saved Room Plans</h2>
+          <h2>My Saved Cost Estimations</h2>
           <div id="plans-list" class="plans-list"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- Dialog Modal -->
+    <div id="dialog-modal">
+      <div id="dialog-content">
+        <h2 id="dialog-title">Dialog</h2>
+        <p id="dialog-message"></p>
+        <div id="dialog-buttons"></div>
       </div>
     </div>
   </body>

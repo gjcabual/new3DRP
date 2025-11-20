@@ -39,12 +39,14 @@ async function loadProfileData() {
         })
       : '-';
 
-    // Load saved plans
-    const plans = getLocalRoomPlans();
-    document.getElementById('profile-plans-count').textContent = plans.length;
+    // Load saved cost estimations
+    const estimations = typeof getSavedCostEstimations === 'function' 
+      ? getSavedCostEstimations() 
+      : [];
+    document.getElementById('profile-plans-count').textContent = estimations.length;
 
-    // Display plans
-    renderPlans(plans);
+    // Display estimations
+    renderPlans(estimations);
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('profile-info').style.display = 'block';
@@ -66,20 +68,20 @@ function renderPlans(plans) {
   if (plans.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <p>📭 No saved plans yet</p>
-        <p>Create your first room plan in the planner!</p>
+        <p>📭 No saved cost estimations yet</p>
+        <p>Create your first cost estimation in the planner!</p>
       </div>
     `;
     return;
   }
 
-  plans.forEach(plan => {
+  plans.forEach(estimation => {
     const card = document.createElement('div');
     card.className = 'plan-card';
-    card.dataset.planId = plan.id;
+    card.dataset.planId = estimation.id;
 
-    const createdDate = plan.createdAt
-      ? new Date(plan.createdAt).toLocaleDateString('en-US', {
+    const createdDate = estimation.createdAt
+      ? new Date(estimation.createdAt).toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
           day: 'numeric',
@@ -88,18 +90,31 @@ function renderPlans(plans) {
         })
       : '-';
 
-    const planName = plan.name || 'Unnamed Plan';
-    const planCost = plan.costTotal ?? plan.cost_total ?? 0;
-    const totalCostDisplay = formatCurrency(planCost);
-    const roomWidth = plan.roomWidth ?? plan.room_width ?? '-';
-    const roomLength = plan.roomLength ?? plan.room_length ?? '-';
-    const furnitureCount = plan.furnitureData?.length ?? plan.furniture_data?.length ?? 0;
-    const snapshotFileName = plan.snapshotFileName || 'Not downloaded';
+    const estimationName = estimation.name || 'Unnamed Cost Estimation';
+    const totalCost = estimation.costTotal ?? 0;
+    const totalCostDisplay = formatCurrency(totalCost);
+    const roomWidth = estimation.roomWidth ?? '-';
+    const roomLength = estimation.roomLength ?? '-';
+    const furnitureCount = estimation.furnitureCount ?? 0;
+    const costItems = estimation.costItems || {};
+
+    // Build cost breakdown HTML
+    const costBreakdown = Object.keys(costItems).length > 0
+      ? Object.entries(costItems).map(([modelKey, item]) => {
+          const itemTotal = (item.unitCost || item.price || 0) * (item.qty || 0);
+          return `
+            <div class="cost-breakdown-item">
+              <span>${item.name || modelKey}</span>
+              <span>${item.qty || 0} × ${formatCurrency(item.unitCost || item.price || 0)} = ${formatCurrency(itemTotal)}</span>
+            </div>
+          `;
+        }).join('')
+      : '<div class="cost-breakdown-empty">No items in this estimation</div>';
 
     card.innerHTML = `
       <div class="plan-header">
         <div>
-          <div class="plan-name">${planName}</div>
+          <div class="plan-name">${estimationName}</div>
           <div class="plan-date">Created: ${createdDate}</div>
         </div>
         <div class="plan-total">
@@ -117,12 +132,14 @@ function renderPlans(plans) {
           <div class="value">${furnitureCount} items</div>
         </div>
         <div class="plan-detail-item">
-          <label>File Name</label>
-          <div class="value">${snapshotFileName}</div>
+          <label>Cost Breakdown</label>
+          <div class="cost-breakdown">
+            ${costBreakdown}
+          </div>
         </div>
       </div>
       <div class="plan-actions">
-        <button class="btn-danger" onclick="deletePlan('${plan.id}')">
+        <button class="btn-danger" onclick="deletePlan('${estimation.id}')">
           🗑️ Delete
         </button>
       </div>
@@ -137,16 +154,21 @@ function renderPlans(plans) {
  * @param {string} planId - Plan ID
  */
 async function deletePlan(planId) {
-  if (!confirm('Delete this saved snapshot?')) {
+  const confirmed = await showConfirm('Delete this saved cost estimation?', 'Confirm Delete');
+  if (!confirmed) {
     return;
   }
 
   try {
-    deleteLocalRoomPlan(planId);
+    if (typeof deleteCostEstimation === 'function') {
+      deleteCostEstimation(planId);
+    } else {
+      throw new Error('Delete function not available');
+    }
     await loadProfileData();
   } catch (error) {
-    console.error('Error deleting plan:', error);
-    alert('Error deleting plan: ' + error.message);
+    console.error('Error deleting cost estimation:', error);
+    await showDialog('Error deleting cost estimation: ' + error.message, 'Error');
   }
 }
 
@@ -158,7 +180,7 @@ async function handleLogout() {
   if (result.success) {
     window.location.href = 'planner.html';
   } else {
-    alert('Error signing out: ' + result.error);
+    await showDialog('Error signing out: ' + result.error, 'Error');
   }
 }
 
