@@ -15,7 +15,17 @@ const STORAGE_MODEL_FILES = {
   center_table2: 'center_table2.obj',
   wardrobe1: 'wardrobe_modern.obj',
   wardrobe2: 'wardrobe_traditional.obj',
-  wardrobe3: 'wardrobe_openframe.obj'
+  wardrobe3: 'wardrobe_openframe.obj',
+  mirror1: 'mirror1.obj',
+  mirror2: 'mirror2.obj',
+  bed1: 'bed1.obj',
+  bed2: 'bed2.obj',
+  shelf1: 'shelf1.obj',
+  shelf2: 'shelf2.obj',
+  chair1: 'chair1.obj',
+  chair2: 'chair2.obj',
+  desk1: 'desk1.obj',
+  desk2: 'desk2.obj'
 };
 
 const STORAGE_BUCKET_FILES = new Set([
@@ -23,7 +33,17 @@ const STORAGE_BUCKET_FILES = new Set([
   'wardrobe_traditional.obj',
   'wardrobe_openframe.obj',
   'center_table1.obj',
-  'center_table2.obj'
+  'center_table2.obj',
+  'mirror1.obj',
+  'mirror2.obj',
+  'bed1.obj',
+  'bed2.obj',
+  'shelf1.obj',
+  'shelf2.obj',
+  'chair1.obj',
+  'chair2.obj',
+  'desk1.obj',
+  'desk2.obj'
 ]);
 
 const FALLBACK_ITEM_NAMES = {
@@ -32,7 +52,17 @@ const FALLBACK_ITEM_NAMES = {
   wardrobe1: 'Wardrobe Modern',
   wardrobe2: 'Wardrobe Traditional',
   wardrobe3: 'Wardrobe Open Frame',
-  table1: 'Center Table'
+  table1: 'Center Table',
+  mirror1: 'Mirror 1',
+  mirror2: 'Mirror 2',
+  bed1: 'Bed 1',
+  bed2: 'Bed 2',
+  shelf1: 'Shelf 1',
+  shelf2: 'Shelf 2',
+  chair1: 'Chair 1',
+  chair2: 'Chair 2',
+  desk1: 'Desk 1',
+  desk2: 'Desk 2'
 };
 
 const FALLBACK_ITEM_METADATA = {
@@ -614,10 +644,33 @@ function handleDrop(e) {
     `obj: url(${modelUrl})`
   );
   furnitureEl.setAttribute("scale", draggedItem.scale);
-  furnitureEl.setAttribute(
-    "draggable-furniture",
-    `roomWidth: ${roomWidth}; roomLength: ${roomLength}; objectWidth: 1.5; objectLength: 1.5; wallThickness: 0.1`
-  );
+  
+  // Check if item is a wall-mounted fixture (mirror or shelf)
+  const isWallMounted = draggedItem.model.startsWith('mirror') || draggedItem.model.startsWith('shelf');
+  
+  if (isWallMounted) {
+    // For wall-mounted items, place near a wall initially
+    const wallThickness = 0.1;
+    const innerX = roomWidth / 2 - wallThickness / 2;
+    const innerZ = roomLength / 2 - wallThickness / 2;
+    // Place on south wall initially
+    const wallX = (Math.random() - 0.5) * (roomWidth - 1);
+    const wallZ = -innerZ + 0.01;
+    furnitureEl.setAttribute("position", `${wallX} 0 ${wallZ}`);
+    
+    // Use wall-mounted-furniture component
+    furnitureEl.setAttribute(
+      "wall-mounted-furniture",
+      `roomWidth: ${roomWidth}; roomLength: ${roomLength}; objectWidth: 1.5; objectLength: 1.5; wallThickness: 0.1; wallOffset: 0.01`
+    );
+  } else {
+    // Use regular draggable-furniture component
+    furnitureEl.setAttribute(
+      "draggable-furniture",
+      `roomWidth: ${roomWidth}; roomLength: ${roomLength}; objectWidth: 1.5; objectLength: 1.5; wallThickness: 0.1`
+    );
+  }
+  
   furnitureEl.setAttribute("clickable-furniture", "");
   furnitureEl.setAttribute("material", "color: #FF8C00"); // Orange color for table
   // Store model key as data attribute for easy retrieval during deletion
@@ -935,6 +988,236 @@ function showWardrobeSubcategory() {
   updateSubcategoryUI();
 }
 
+function showMirrorSubcategory() {
+  const sidePanel = document.getElementById("side-panel");
+  if (!sidePanel) return;
+
+  if (!sidePanel.dataset.originalContent) {
+    sidePanel.dataset.originalContent = sidePanel.innerHTML;
+  }
+
+  const mirror1Name = getItemName('mirror1');
+  const mirror2Name = getItemName('mirror2');
+
+  const mirrorContent = `
+    <div class="panel-header">
+      <button onclick="goBackToMainPanel()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f5f5f5; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">← Back</button>
+      <h3>🪞 Mirror Options</h3>
+      <small>Choose a mirror style</small>
+    </div>
+    <div class="model-category">
+      <div class="model-grid">
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="mirror1"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">🪞</span>
+          <div class="model-name">${mirror1Name}</div>
+        </div>
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="mirror2"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">🪞</span>
+          <div class="model-name">${mirror2Name}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  sidePanel.innerHTML = mirrorContent;
+  initializeDragAndDrop();
+  updateSubcategoryUI();
+}
+
+function showBedSubcategory() {
+  const sidePanel = document.getElementById("side-panel");
+  if (!sidePanel) return;
+
+  if (!sidePanel.dataset.originalContent) {
+    sidePanel.dataset.originalContent = sidePanel.innerHTML;
+  }
+
+  const bed1Name = getItemName('bed1');
+  const bed2Name = getItemName('bed2');
+
+  const bedContent = `
+    <div class="panel-header">
+      <button onclick="goBackToMainPanel()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f5f5f5; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">← Back</button>
+      <h3>🛏️ Bed Options</h3>
+      <small>Choose a bed style</small>
+    </div>
+    <div class="model-category">
+      <div class="model-grid">
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="bed1"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">🛏️</span>
+          <div class="model-name">${bed1Name}</div>
+        </div>
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="bed2"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">🛏️</span>
+          <div class="model-name">${bed2Name}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  sidePanel.innerHTML = bedContent;
+  initializeDragAndDrop();
+  updateSubcategoryUI();
+}
+
+function showShelfSubcategory() {
+  const sidePanel = document.getElementById("side-panel");
+  if (!sidePanel) return;
+
+  if (!sidePanel.dataset.originalContent) {
+    sidePanel.dataset.originalContent = sidePanel.innerHTML;
+  }
+
+  const shelf1Name = getItemName('shelf1');
+  const shelf2Name = getItemName('shelf2');
+
+  const shelfContent = `
+    <div class="panel-header">
+      <button onclick="goBackToMainPanel()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f5f5f5; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">← Back</button>
+      <h3>📚 Shelf Options</h3>
+      <small>Choose a shelf style</small>
+    </div>
+    <div class="model-category">
+      <div class="model-grid">
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="shelf1"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">📚</span>
+          <div class="model-name">${shelf1Name}</div>
+        </div>
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="shelf2"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">📚</span>
+          <div class="model-name">${shelf2Name}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  sidePanel.innerHTML = shelfContent;
+  initializeDragAndDrop();
+  updateSubcategoryUI();
+}
+
+function showChairSubcategory() {
+  const sidePanel = document.getElementById("side-panel");
+  if (!sidePanel) return;
+
+  if (!sidePanel.dataset.originalContent) {
+    sidePanel.dataset.originalContent = sidePanel.innerHTML;
+  }
+
+  const chair1Name = getItemName('chair1');
+  const chair2Name = getItemName('chair2');
+
+  const chairContent = `
+    <div class="panel-header">
+      <button onclick="goBackToMainPanel()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f5f5f5; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">← Back</button>
+      <h3>🪑 Chair Options</h3>
+      <small>Choose a chair style</small>
+    </div>
+    <div class="model-category">
+      <div class="model-grid">
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="chair1"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">🪑</span>
+          <div class="model-name">${chair1Name}</div>
+        </div>
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="chair2"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">🪑</span>
+          <div class="model-name">${chair2Name}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  sidePanel.innerHTML = chairContent;
+  initializeDragAndDrop();
+  updateSubcategoryUI();
+}
+
+function showDeskSubcategory() {
+  const sidePanel = document.getElementById("side-panel");
+  if (!sidePanel) return;
+
+  if (!sidePanel.dataset.originalContent) {
+    sidePanel.dataset.originalContent = sidePanel.innerHTML;
+  }
+
+  const desk1Name = getItemName('desk1');
+  const desk2Name = getItemName('desk2');
+
+  const deskContent = `
+    <div class="panel-header">
+      <button onclick="goBackToMainPanel()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f5f5f5; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">← Back</button>
+      <h3>💻 Desk Options</h3>
+      <small>Choose a desk style</small>
+    </div>
+    <div class="model-category">
+      <div class="model-grid">
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="desk1"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">💻</span>
+          <div class="model-name">${desk1Name}</div>
+        </div>
+        <div
+          class="model-item enabled"
+          draggable="true"
+          data-model="desk2"
+          data-scale="1 1 1"
+        >
+          <span class="model-icon">💻</span>
+          <div class="model-name">${desk2Name}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  sidePanel.innerHTML = deskContent;
+  initializeDragAndDrop();
+  updateSubcategoryUI();
+}
+
 function goBackToMainPanel() {
   const sidePanel = document.getElementById("side-panel");
   const resizePanel = document.getElementById("resize-dimension-panel");
@@ -1230,10 +1513,24 @@ function restoreRoom(roomData) {
       // Load model
       const modelUrl = getModelUrl(itemData.model_key);
       furnitureEl.setAttribute('obj-model', `obj: url(${modelUrl})`);
-      furnitureEl.setAttribute(
-        'draggable-furniture',
-        `roomWidth: ${roomWidth}; roomLength: ${roomLength}; objectWidth: 1.5; objectLength: 1.5; wallThickness: 0.1`
-      );
+      
+      // Check if item is a wall-mounted fixture (mirror or shelf)
+      const isWallMounted = itemData.model_key.startsWith('mirror') || itemData.model_key.startsWith('shelf');
+      
+      if (isWallMounted) {
+        // Use wall-mounted-furniture component
+        furnitureEl.setAttribute(
+          'wall-mounted-furniture',
+          `roomWidth: ${roomWidth}; roomLength: ${roomLength}; objectWidth: 1.5; objectLength: 1.5; wallThickness: 0.1; wallOffset: 0.01`
+        );
+      } else {
+        // Use regular draggable-furniture component
+        furnitureEl.setAttribute(
+          'draggable-furniture',
+          `roomWidth: ${roomWidth}; roomLength: ${roomLength}; objectWidth: 1.5; objectLength: 1.5; wallThickness: 0.1`
+        );
+      }
+      
       furnitureEl.setAttribute('clickable-furniture', '');
       furnitureEl.setAttribute('material', 'color: #FF8C00');
       
@@ -1540,7 +1837,12 @@ window.addEventListener("load", async function () {
   }
   
   // Save state before page unload using collectRoomPlanData
-  window.addEventListener('beforeunload', () => {
+  window.addEventListener('beforeunload', (e) => {
+    // Show browser confirmation dialog
+    e.preventDefault();
+    e.returnValue = ''; // Chrome requires returnValue to be set
+    
+    // Auto-save state
     if (typeof collectRoomPlanData === 'function') {
       const roomPlanData = collectRoomPlanData();
       localStorage.setItem('currentRoomState', JSON.stringify({
@@ -1552,6 +1854,8 @@ window.addEventListener("load", async function () {
     } else {
       saveWorkspaceState();
     }
+    
+    return ''; // For older browsers
   });
   
   // Also save on visibility change (when tab becomes hidden)
@@ -1575,7 +1879,15 @@ window.addEventListener("load", async function () {
  * Update subcategory UI with names from metadata
  */
 function updateSubcategoryUI() {
-  const selectors = ['[data-model^="wardrobe"]', '[data-model^="center_table"]'];
+  const selectors = [
+    '[data-model^="wardrobe"]',
+    '[data-model^="center_table"]',
+    '[data-model^="mirror"]',
+    '[data-model^="bed"]',
+    '[data-model^="shelf"]',
+    '[data-model^="chair"]',
+    '[data-model^="desk"]'
+  ];
   selectors.forEach(selector => {
     document.querySelectorAll(selector).forEach(item => {
       const modelKey = item.getAttribute('data-model');

@@ -25,11 +25,12 @@ TEST/
 ├── database-setup.sql      # Database schema and setup
 ├── README-DATABASE-SETUP.md # Database setup instructions
 ├── css/
-│   ├── index.css          # Welcome page styles
+│   ├── index.css          # Welcome page styles (modern dark theme)
 │   ├── planner.css        # Main planner styles
 │   ├── profile.css        # Profile page styles
 │   ├── admin.css          # Admin panel styles
-│   └── auth.css           # Authentication modal styles
+│   ├── auth.css           # Authentication modal styles
+│   └── dialog.css         # Dialog modal styles (includes welcome dialog)
 ├── js/
 │   ├── index.js           # Welcome page logic
 │   ├── planner.js         # Main planner application logic
@@ -50,7 +51,10 @@ TEST/
 │       ├── supabase.js    # Supabase client initialization
 │       ├── snapshot.js    # Screenshot capture and local storage
 │       ├── migrate-data.js # Data migration utilities
-│       └── debug.js       # Debug utilities
+│       ├── debug.js       # Debug utilities
+│       ├── dialog.js      # Dialog utility (alert, confirm, prompt)
+│       ├── workspace-state.js # Workspace state management
+│       └── cost-estimation.js # Cost estimation utilities
 └── models/                # 3D model files (OBJ format)
     ├── table1.obj
     ├── wardrobe1.obj
@@ -84,7 +88,15 @@ Manages the authentication UI and state:
 - **`handleAuthSubmit()`**: Processes authentication form submission
 - **`updateAuthUI()`**: Updates UI elements based on authentication state
 
-### 2. Main Planner Module (`js/planner.js`)
+### 2. Welcome Page Module (`js/index.js`)
+
+Handles the initial setup page where users enter room dimensions:
+
+- **`startPlanner()`**: Validates and stores room dimensions (width, length, height) to localStorage, then redirects to planner
+- **Input validation**: Ensures all three dimensions are between 1M and 20M
+- **Keyboard navigation**: Supports Enter key to start planner and Tab navigation between inputs
+
+### 3. Main Planner Module (`js/planner.js`)
 
 The core application logic for the 3D room planner:
 
@@ -94,14 +106,18 @@ The core application logic for the 3D room planner:
 - **`calculateEstimatedPrice(prices)`**: Calculates average price from multiple store prices
 - **`getModelUrl(modelKey)`**: Resolves model file URLs (Supabase Storage or local)
 - **`getItemName(modelKey)`**: Gets display name for furniture items
-- **`initializeRoom()`**: Sets up the 3D room with dimensions from localStorage
-- **`createRoomWalls(width, length)`**: Dynamically creates room walls
+- **`initializeRoom()`**: Sets up the 3D room with dimensions from localStorage (width, length, height)
+- **`createRoomWalls(width, length, height)`**: Dynamically creates room walls with specified height
+- **`showWelcomeDialog()`**: Displays welcome dialog with instructions (one-time only, tracked via localStorage)
 - **`handleDragStart(e)`**: Initiates drag operation from furniture library
 - **`handleDrop(e)`**: Handles furniture placement in the 3D scene
 - **`renderCost()`**: Updates cost estimation display
 - **`toggleCostPanel()`**: Shows/hides the cost panel
 - **`deleteFurniture()`**: Removes furniture from the scene
 - **`rotateFurnitureLeft()` / `rotateFurnitureRight()`**: Rotates selected furniture
+- **`saveWorkspaceState()`**: Saves current room state to localStorage
+- **`restoreRoom(roomData)`**: Restores room from saved state
+- **`restoreWorkspaceState()`**: Legacy function to restore workspace state
 
 #### Data Structures:
 
@@ -111,7 +127,7 @@ The core application logic for the 3D room planner:
 - **`costState`**: Object tracking furniture costs and totals
 - **`furnitureCounter`**: Counter for unique furniture IDs
 
-### 3. A-Frame Components (`js/components/`)
+### 4. A-Frame Components (`js/components/`)
 
 #### `movement.js`
 
@@ -165,7 +181,7 @@ Manages the profile circle and dropdown menu:
 - **`getInitials(email)`**: Extracts user initials from email
 - **Admin link visibility**: Shows admin dashboard link for admin users
 
-### 4. Utility Modules (`js/utils/`)
+### 5. Utility Modules (`js/utils/`)
 
 #### `supabase.js`
 
@@ -200,7 +216,31 @@ Debug utilities for development:
 - **Debug logging**: Enhanced console logging
 - **Visual debugging**: Position and collision visualization
 
-### 5. Profile Module (`js/profile.js`)
+#### `dialog.js`
+
+Dialog utility for replacing browser alerts, confirms, and prompts:
+
+- **`showDialog(message, title)`**: Shows a simple dialog with OK button
+- **`showConfirm(message, title)`**: Shows confirmation dialog with Yes/No buttons
+- **`showPrompt(message, defaultValue, title)`**: Shows input dialog with OK/Cancel buttons
+- **Welcome dialog support**: Custom styling for welcome dialog with dark theme
+
+#### `workspace-state.js`
+
+Workspace state management utilities:
+
+- **`goBackToPlanner()`**: Navigates back to planner while preserving workspace state
+- Saves state before navigation to ensure items persist
+
+#### `cost-estimation.js`
+
+Cost estimation management:
+
+- **`getSavedCostEstimations()`**: Retrieves saved cost estimations from localStorage
+- **`saveCostEstimation(name)`**: Saves current cost estimation with a name
+- **`deleteCostEstimation(id)`**: Deletes a saved cost estimation
+
+### 6. Profile Module (`js/profile.js`)
 
 Manages the user profile page:
 
@@ -209,7 +249,7 @@ Manages the user profile page:
 - **`deletePlan(planId)`**: Deletes a saved plan
 - **`handleLogout()`**: Signs out the user
 
-### 6. Admin Module (`js/admin.js`)
+### 7. Admin Module (`js/admin.js`)
 
 Admin panel for managing furniture items and prices:
 
@@ -269,6 +309,7 @@ Stores user's saved room plans (currently using localStorage instead):
 - `name` (TEXT)
 - `room_width` (NUMERIC(5,2))
 - `room_length` (NUMERIC(5,2))
+- `room_height` (NUMERIC(5,2)) - Room height dimension
 - `furniture_data` (JSONB) - Array of furniture objects
 - `cost_total` (NUMERIC(10,2))
 - `created_at` (TIMESTAMP)
@@ -297,11 +338,30 @@ Bucket is set to **Public** for direct access.
 
 ### 1. Initial Setup (`index.html`)
 
-- User enters room dimensions (width × length)
-- Dimensions saved to localStorage
-- Redirects to planner
+- **Modern Dark Theme Interface**:
+  - Dark background (#0a0a0a) with subtle grid pattern
+  - 3D wireframe cube visualization (isometric projection, animated)
+  - Clean, minimalist design inspired by Next.js aesthetic
+- **Room Dimension Input**:
+  - User enters three dimensions: Width (W), Height (H), and Length (L)
+  - Inputs positioned around the 3D cube visualization
+  - Real-time validation (1-20M per dimension)
+  - Keyboard navigation support (Tab, Enter)
+- **Validation & Navigation**:
+  - Validates all three dimensions are provided and within range
+  - Stores dimensions in localStorage (roomWidth, roomLength, roomHeight)
+  - Redirects to planner page on successful validation
 
 ### 2. Main Planner (`planner.html`)
+
+- **Welcome Dialog (First Visit Only)**:
+
+  - Automatically displays on first visit after entering dimensions
+  - Shows room dimensions and comprehensive instructions
+  - Includes controls, furniture, and cost board information
+  - One-time display (tracked via localStorage `welcomeDialogShown`)
+  - Can be closed via button, backdrop click, or Escape key
+  - Users can hover over the "?" button anytime to see instructions again
 
 - **Unauthenticated users**:
 
@@ -327,12 +387,16 @@ Bucket is set to **Public** for direct access.
 - Shows saved room plans with:
   - Plan name and creation date
   - Total estimated cost
-  - Room dimensions
+  - Room dimensions (width × length × height)
   - Furniture count
   - Snapshot filename
 - Can delete plans
+- Back button preserves workspace state when returning to planner
 
 ### 4. Admin Panel (`admin.html`)
+
+- Dark theme matching the application aesthetic
+- Next.js-style card-based UI
 
 - Add new furniture items
 - Add prices to items
@@ -343,12 +407,14 @@ Bucket is set to **Public** for direct access.
 
 ### 3D Scene Management
 
-- Dynamic room creation based on user input
+- Dynamic room creation based on user input (width, length, height)
+- Room walls created with specified height (defaults to 3M if not provided)
 - Real-time furniture placement
 - Collision detection
 - Wall boundary enforcement
 - Furniture rotation
 - Cost calculation
+- Workspace state persistence (auto-saves on page unload and visibility change)
 
 ### Cost Estimation
 
@@ -364,6 +430,19 @@ Bucket is set to **Public** for direct access.
 - Saves plan metadata to localStorage
 - Includes room dimensions, furniture data, and total cost
 
+### Welcome Dialog System
+
+- One-time welcome dialog on first visit to planner
+- Displays room dimensions and comprehensive instructions
+- Dark theme matching the application aesthetic
+- Instructions include:
+  - Movement controls (W/A/S/D, Q/E, Mouse)
+  - Furniture interaction (drag, click, panel)
+  - Cost board information
+  - Tip about hovering over "?" button for instructions
+- Tracked via localStorage to prevent repeated displays
+- Users can access instructions anytime via hover on "?" button
+
 ### Authentication
 
 - Email/password authentication via Supabase
@@ -375,16 +454,36 @@ Bucket is set to **Public** for direct access.
 
 ### Color Scheme
 
-- **Background**: Light gray (#f5f5f5) for pages, black (#000000) for 3D scene
+- **Index Page**: Dark theme (#0a0a0a) with subtle grid pattern, white text
+- **3D Scene**: Black (#000000) background
 - **Floor**: Brown (#8B4513)
-- **Furniture**: Orange (#FF8C00) by default
+- **Furniture**: Orange (#FF8C00) by default, Green (#4CAF50) when selected, Red (#FF6B6B) when near walls
 - **UI Panels**: Dark theme (rgba(15, 15, 15, 0.96))
 - **Profile Circle**: Dark gradient (#343434 to #181818)
+- **Welcome Dialog**: Dark theme matching planner interface
 
 ### Typography
 
 - **Font Family**: System fonts (-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif)
-- Consistent across all pages (admin, profile, planner)
+- Consistent across all pages (admin, profile, planner, index)
+- Modern, clean typography with proper letter-spacing
+
+### Index Page Design
+
+- **3D Wireframe Cube**:
+  - Isometric projection with 6 faces
+  - Animated floating effect
+  - White wireframe borders with varying opacity
+  - Responsive sizing (180px on desktop, scales down on mobile)
+- **Input Layout**:
+  - Dimension inputs (W, H, L) positioned around the cube
+  - Modern underline-style inputs
+  - Labels in uppercase bold font
+  - Proper spacing to prevent overlap
+- **Responsive Design**:
+  - Adapts to different screen sizes
+  - Mobile-friendly with adjusted cube and input sizes
+  - Maintains square aspect ratio for room visualization container
 
 ## Configuration
 
@@ -428,6 +527,39 @@ Set in `js/utils/supabase.js`:
 - Chrome, Firefox, Safari, Edge (latest versions)
 - Mobile browsers may have limited functionality
 
+## Recent Updates
+
+### Version Updates
+
+#### Latest Features (2025)
+
+1. **Redesigned Welcome Page**:
+
+   - Modern dark theme with Next.js-inspired aesthetic
+   - 3D wireframe cube visualization
+   - Added Height (H) dimension input alongside Width and Length
+   - Improved responsive design for all screen sizes
+   - Better input positioning and spacing
+
+2. **Welcome Dialog System**:
+
+   - One-time welcome dialog on first visit to planner
+   - Comprehensive instructions display
+   - Dark theme matching application aesthetic
+   - Persistent instruction access via "?" button hover
+
+3. **Enhanced Room Dimensions**:
+
+   - Full 3D room support (width × length × height)
+   - Room walls created with specified height
+   - Height stored in localStorage and used throughout application
+
+4. **Improved User Experience**:
+   - Better validation messages
+   - Keyboard navigation support
+   - Workspace state persistence improvements
+   - Enhanced responsive design
+
 ## Future Enhancements
 
 - Load saved plans from database (currently using localStorage)
@@ -437,3 +569,4 @@ Set in `js/utils/supabase.js`:
 - Share plans with other users
 - Advanced lighting and shadows
 - VR mode support
+- Room height visualization in 3D scene

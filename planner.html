@@ -15,6 +15,7 @@
     <script src="js/components/floor-resize.js"></script>
     <script src="js/components/smart-placement.js"></script>
     <script src="js/components/draggable-furniture.js"></script>
+    <script src="js/components/wall-mounted-furniture.js"></script>
     <script src="js/components/clickable-furniture.js"></script>
     <script src="js/components/position-debug.js"></script>
     <script src="js/utils/debug.js"></script>
@@ -236,11 +237,6 @@
             <span class="model-icon">☕</span>
             <div class="model-name">Coffee Table</div>
           </div>
-          <div class="model-item disabled" data-model="desk">
-            <div class="disabled-overlay">SOON</div>
-            <span class="model-icon">💻</span>
-            <div class="model-name">Desk</div>
-          </div>
           <div class="model-item disabled" data-model="side-table">
             <div class="disabled-overlay">SOON</div>
             <span class="model-icon">🪑</span>
@@ -252,8 +248,12 @@
       <div class="model-category">
         <div class="category-title">🪑 Seating</div>
         <div class="model-grid">
-          <div class="model-item disabled" data-model="chair">
-            <div class="disabled-overlay">SOON</div>
+          <div
+            class="model-item enabled"
+            draggable="false"
+            data-category="chair"
+            onclick="showChairSubcategory()"
+          >
             <span class="model-icon">🪑</span>
             <div class="model-name">Chair</div>
           </div>
@@ -278,8 +278,12 @@
       <div class="model-category">
         <div class="category-title">🛏️ Bedroom</div>
         <div class="model-grid">
-          <div class="model-item disabled" data-model="bed">
-            <div class="disabled-overlay">SOON</div>
+          <div
+            class="model-item enabled"
+            draggable="false"
+            data-category="bed"
+            onclick="showBedSubcategory()"
+          >
             <span class="model-icon">🛏️</span>
             <div class="model-name">Bed</div>
           </div>
@@ -301,6 +305,51 @@
             <div class="disabled-overlay">SOON</div>
             <span class="model-icon">💡</span>
             <div class="model-name">Nightstand</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="model-category">
+        <div class="category-title">🪞 Mirrors</div>
+        <div class="model-grid">
+          <div
+            class="model-item enabled"
+            draggable="false"
+            data-category="mirror"
+            onclick="showMirrorSubcategory()"
+          >
+            <span class="model-icon">🪞</span>
+            <div class="model-name">Mirror</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="model-category">
+        <div class="category-title">📚 Storage</div>
+        <div class="model-grid">
+          <div
+            class="model-item enabled"
+            draggable="false"
+            data-category="shelf"
+            onclick="showShelfSubcategory()"
+          >
+            <span class="model-icon">📚</span>
+            <div class="model-name">Shelf</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="model-category">
+        <div class="category-title">💻 Workspace</div>
+        <div class="model-grid">
+          <div
+            class="model-item enabled"
+            draggable="false"
+            data-category="desk"
+            onclick="showDeskSubcategory()"
+          >
+            <span class="model-icon">💻</span>
+            <div class="model-name">Desk</div>
           </div>
         </div>
       </div>
